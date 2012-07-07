@@ -176,6 +176,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\BooFileView.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration

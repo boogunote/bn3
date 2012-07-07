@@ -26,9 +26,11 @@
             <Control width="5" />
             <HorizontalLayout bordersize="1" bkcolor="#FFFFFFFF" bordercolor="#FF768D9B">
                 <TabLayout name="switch">
-                    <HorizontalLayout>
-                        <BooFileView padding="2,2,2,2"/>
-                    </HorizontalLayout>
+                  <BooFileViewUI width="0" height="0" bordercolor="#FF768D9B" inset="1,0,1,0" padding="2,2,2,2" vscrollbar="true">
+                    <BooFileViewNode name="TextUI1" text="dfgdfgdfg" width="0" height="272" textpadding="2,0,2,0" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="centerwrap">
+                    </BooFileViewNode>
+                    <BooFileViewNode name="TextUI2" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
+                    </BooFileViewUI>
                     <RichEdit padding="2,0,2,0" font="3" align="wrap" />
                     <HorizontalLayout>
                         <Text text="第三页" float="true" pos="335,180,0,0" width="265" height="120" relativepos="50,50,0,0" textpadding="2,0,2,0" font="4" align="wrap" />
