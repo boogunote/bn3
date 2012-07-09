@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "BooFileView.h"
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//BooTextFieldUI
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 BooTextFieldUI::BooTextFieldUI()
 {
 }
@@ -24,6 +28,27 @@ void BooTextFieldUI::DoInit()
 	this->SetText(L"");
 }
 
+LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+	if (WM_KEYDOWN == uMsg)
+	{
+		switch (wParam)
+		{
+		case VK_RETURN:
+			{
+				if (GetKeyState(VK_CONTROL) & 0x8000)
+				{
+					//TODO:从这里开始写新建文字块
+					int a = 0;
+				}
+			}
+		default:
+			;
+		}
+	}
+	return __super::MessageHandler(uMsg, wParam, lParam, bHandled);
+}
+
 void BooTextFieldUI::OnTxNotify(DWORD iNotify, void *pv)
 {
 	if( iNotify == EN_REQUESTRESIZE ) {
@@ -41,10 +66,13 @@ void BooTextFieldUI::OnTxNotify(DWORD iNotify, void *pv)
 	}
 }
 
-BooFileViewNode::BooFileViewNode()
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//BooFileViewNode
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+BooFileViewNode::BooFileViewNode() : m_nIndent(0)
 {
 	m_indent = new CControlUI;
-	m_indent->ApplyAttributeList(_T("float=\"false\" bordersize=\"0\" width=\"100\" height=\"0\""));
+	m_indent->ApplyAttributeList(_T("float=\"false\" bordersize=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\""));
 	this->Add(m_indent);
 
 	m_text = new BooTextFieldUI;
@@ -63,9 +91,19 @@ LPVOID BooFileViewNode::GetInterface(LPCTSTR pstrName)
 	return CContainerUI::GetInterface(pstrName);
 }
 
+void BooFileViewNode::SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue)
+{
+	__super::SetAttribute(pstrName, pstrValue);
+	if( _tcscmp(pstrName, _T("indent")) == 0 )
+	{
+		m_nIndent = _ttoi(pstrValue);
+		m_indent->SetFixedWidth(m_nIndent*30+1); //最小必须是1，不能是0,0就是自动撑开
+	}
+}
 
-
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//BooFileViewUI
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 BooFileViewUI::BooFileViewUI()
 {
 }

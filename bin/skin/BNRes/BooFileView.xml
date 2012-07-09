@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <Window>
   <RichEdit multiline="true" vscrollbar="true" autovscroll="true" enabled="true" rich="true" readonly="false"  />
+  <RichEdit multiline="true" vscrollbar="true" autovscroll="true" enabled="true" rich="true" readonly="false"  />
 </Window>
