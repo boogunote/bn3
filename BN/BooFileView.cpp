@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "BooFileView.h"
- 
+
 BooTextFieldUI::BooTextFieldUI()
 {
 }
