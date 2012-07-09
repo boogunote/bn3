@@ -36,7 +36,7 @@ void BooTextFieldUI::OnTxNotify(DWORD iNotify, void *pv)
 			WCHAR szHeight[BUF_128B];
 			_itow_s(m_szRequest.cy, szHeight, BUF_128B, 10);
 			this->SetAttribute(L"height", szHeight);
-			NeedUpdate();
+			this->GetParent()->SetAttribute(L"height", szHeight);
 		}
 	}
 }
