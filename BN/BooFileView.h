@@ -1,5 +1,20 @@
 #pragma once
 
+class BooTextFieldUI : public CRichEditUI
+{
+public:
+	BooTextFieldUI();
+
+	LPCTSTR GetClass() const;
+	LPVOID GetInterface(LPCTSTR pstrName);
+	void DoInit();
+
+	void OnTxNotify(DWORD iNotify, void *pv);
+
+private:
+	SIZE m_szRequest;
+};
+
 class BooFileViewNode : public CHorizontalLayoutUI
 {
 public:

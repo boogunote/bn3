@@ -35,3 +35,6 @@ using namespace DuiLib;
 #       pragma comment(lib, "..\\bin\\DuiLib.lib")
 #   endif
 #endif
+
+
+#define BUF_128B	128
