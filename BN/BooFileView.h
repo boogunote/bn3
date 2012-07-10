@@ -25,7 +25,7 @@ public:
 	LPVOID GetInterface(LPCTSTR pstrName);
 
 	void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
-	bool OnTextFeildHeightChanged(void* param);
+	bool OnTextFeildNotify(void* param);
 
 
 private:
@@ -54,7 +54,9 @@ public:
 	LPCTSTR GetClass() const;
 	LPVOID GetInterface(LPCTSTR pstrName);
 
+	void DoInit();
 	void SetPos(RECT rc);
+	bool OnNodeNotify(void* param);
 };
 
 class CDialogBuilderCallbackEx : public IDialogBuilderCallback

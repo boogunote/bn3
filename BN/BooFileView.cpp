@@ -38,8 +38,7 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 			{
 				if (GetKeyState(VK_CONTROL) & 0x8000)
 				{
-					//TODO:从这里开始写新建文字块
-					int a = 0;
+					m_pManager->SendNotify(this, _T("createnode"));
 				}
 			}
 		default:
@@ -78,7 +77,7 @@ BooFileViewNode::BooFileViewNode() : m_nIndent(0)
 
 	m_text = new BooTextFieldUI;
 	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FF0000FF\" bordersize=\"1\""));
-	m_text->OnNotify += MakeDelegate(this, &BooFileViewNode::OnTextFeildHeightChanged);
+	m_text->OnNotify += MakeDelegate(this, &BooFileViewNode::OnTextFeildNotify);
 	this->Add(m_text);
 }
 
@@ -103,13 +102,17 @@ void BooFileViewNode::SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue)
 	}
 }
 
-bool BooFileViewNode::OnTextFeildHeightChanged(void* param)
+bool BooFileViewNode::OnTextFeildNotify(void* param)
 {
 	TNotifyUI* pMsg = (TNotifyUI*)param;
 	if( pMsg->sType == _T("heightchanged") ) {
 		WCHAR szHeight[BUF_128B];
 		_itow_s(pMsg->wParam, szHeight, BUF_128B, 10);
 		this->SetAttribute(L"height", szHeight);
+	}
+	else if (pMsg->sType == _T("createnode")) //接力转发createnode消息
+	{
+		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
 	}
 	return true;
 }
@@ -130,6 +133,25 @@ LPVOID BooFileViewUI::GetInterface(LPCTSTR pstrName)
 {
 	if( _tcscmp(pstrName, _T("BooFileViewUI")) == 0 ) return static_cast<BooFileViewUI*>(this);
 	return CContainerUI::GetInterface(pstrName);
+}
+
+void BooFileViewUI::DoInit()
+{
+	__super::DoInit();
+	for (int i=0; i<m_items.GetSize(); i++)
+	{
+		static_cast<CControlUI*>(m_items[i])->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);;
+	}
+}
+
+bool BooFileViewUI::OnNodeNotify(void* param)
+{
+	TNotifyUI* pMsg = (TNotifyUI*)param;
+	if( pMsg->sType == _T("createnode") )
+	{
+		int a = 0;
+	}
+	return true;
 }
 
 void BooFileViewUI::SetPos(RECT rc)
