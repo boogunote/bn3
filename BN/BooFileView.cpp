@@ -39,11 +39,16 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 				if (GetKeyState(VK_CONTROL) & 0x8000)
 				{
 					m_pManager->SendNotify(this, _T("createnode"));
+					bHandled = TRUE;
 				}
 			}
 		default:
 			;
 		}
+	}
+	if (bHandled)
+	{
+		return 0;
 	}
 	return __super::MessageHandler(uMsg, wParam, lParam, bHandled);
 }
