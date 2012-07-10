@@ -25,6 +25,8 @@ public:
 	LPVOID GetInterface(LPCTSTR pstrName);
 
 	void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
+	bool OnTextFeildHeightChanged(void* param);
+
 
 private:
 	CControlUI* m_indent;

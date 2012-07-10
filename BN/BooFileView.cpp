@@ -61,7 +61,8 @@ void BooTextFieldUI::OnTxNotify(DWORD iNotify, void *pv)
 			WCHAR szHeight[BUF_128B];
 			_itow_s(m_szRequest.cy, szHeight, BUF_128B, 10);
 			this->SetAttribute(L"height", szHeight);
-			this->GetParent()->SetAttribute(L"height", szHeight);
+			m_pManager->SendNotify(this, _T("heightchanged"), m_szRequest.cy);
+			//this->GetParent()->SetAttribute(L"height", szHeight);
 		}
 	}
 }
@@ -77,6 +78,7 @@ BooFileViewNode::BooFileViewNode() : m_nIndent(0)
 
 	m_text = new BooTextFieldUI;
 	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FF0000FF\" bordersize=\"1\""));
+	m_text->OnNotify += MakeDelegate(this, &BooFileViewNode::OnTextFeildHeightChanged);
 	this->Add(m_text);
 }
 
@@ -99,6 +101,17 @@ void BooFileViewNode::SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue)
 		m_nIndent = _ttoi(pstrValue);
 		m_indent->SetFixedWidth(m_nIndent*30+1); //最小必须是1，不能是0,0就是自动撑开
 	}
+}
+
+bool BooFileViewNode::OnTextFeildHeightChanged(void* param)
+{
+	TNotifyUI* pMsg = (TNotifyUI*)param;
+	if( pMsg->sType == _T("heightchanged") ) {
+		WCHAR szHeight[BUF_128B];
+		_itow_s(pMsg->wParam, szHeight, BUF_128B, 10);
+		this->SetAttribute(L"height", szHeight);
+	}
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
