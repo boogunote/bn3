@@ -1,5 +1,9 @@
 #pragma once
 
+#define CREATENODE_PREVIOUS	0
+#define CREATENODE_NEXT		1
+#define CREATENODE_CHILD	2
+
 class BooTextFieldUI : public CRichEditUI
 {
 public:
@@ -11,6 +15,7 @@ public:
 
 	LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 	void OnTxNotify(DWORD iNotify, void *pv);
+	void DoEvent(TEventUI& event);
 
 private:
 	SIZE m_szRequest;
@@ -26,7 +31,7 @@ public:
 
 	void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
 	bool OnTextFeildNotify(void* param);
-
+	void DoInit();
 
 private:
 	CControlUI* m_indent;
@@ -57,6 +62,7 @@ public:
 	void DoInit();
 	void SetPos(RECT rc);
 	bool OnNodeNotify(void* param);
+	int GetFocusedNodeIndex( CControlUI* pControl );
 };
 
 class CDialogBuilderCallbackEx : public IDialogBuilderCallback

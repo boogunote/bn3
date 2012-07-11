@@ -24,12 +24,18 @@ void BooTextFieldUI::DoInit()
 {
 	__super::DoInit();
 	this->SetEventMask(ENM_REQUESTRESIZE|ENM_LINK);
-	this->SetText(L".");
-	this->SetText(L"");
+	this->SetText(L"叫撒风景四季度后付款双方开始反抗军的话水电费结婚的时间发货单上几分的地方");
+	//this->SetText(L"");
 }
 
 LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+	//提高处理效率
+	if (!this->IsFocused())
+	{
+		return 0;
+	}
+	
 	if (WM_KEYDOWN == uMsg)
 	{
 		switch (wParam)
@@ -38,8 +44,10 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 			{
 				if (GetKeyState(VK_CONTROL) & 0x8000)
 				{
-					m_pManager->SendNotify(this, _T("createnode"));
-					bHandled = TRUE;
+					if(GetManager()->GetFocus() == this) {
+						m_pManager->SendNotify(this, _T("createnode"));
+						bHandled = TRUE;
+					}
 				}
 			}
 		default:
@@ -55,7 +63,8 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 void BooTextFieldUI::OnTxNotify(DWORD iNotify, void *pv)
 {
-	if( iNotify == EN_REQUESTRESIZE ) {
+	if( iNotify == EN_REQUESTRESIZE )
+	{
 		REQRESIZE *preqsz = (REQRESIZE *)pv;
 		if (m_szRequest.cx != preqsz->rc.right ||
 			m_szRequest.cy != preqsz->rc.bottom)
@@ -66,9 +75,17 @@ void BooTextFieldUI::OnTxNotify(DWORD iNotify, void *pv)
 			_itow_s(m_szRequest.cy, szHeight, BUF_128B, 10);
 			this->SetAttribute(L"height", szHeight);
 			m_pManager->SendNotify(this, _T("heightchanged"), m_szRequest.cy);
-			//this->GetParent()->SetAttribute(L"height", szHeight);
 		}
 	}
+}
+
+void BooTextFieldUI::DoEvent(TEventUI& event)
+{
+	if( event.Type == UIEVENT_SETFOCUS )
+	{
+		m_pManager->SendNotify(this, _T("setnodefocus"));
+	}
+	__super::DoEvent(event);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,9 +98,9 @@ BooFileViewNode::BooFileViewNode() : m_nIndent(0)
 	this->Add(m_indent);
 
 	m_text = new BooTextFieldUI;
-	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FF0000FF\" bordersize=\"1\""));
-	m_text->OnNotify += MakeDelegate(this, &BooFileViewNode::OnTextFeildNotify);
+	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF0000FF\""));
 	this->Add(m_text);
+	m_text->OnNotify += MakeDelegate(this, &BooFileViewNode::OnTextFeildNotify);
 }
 
 LPCTSTR BooFileViewNode::GetClass() const
@@ -110,7 +127,8 @@ void BooFileViewNode::SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue)
 bool BooFileViewNode::OnTextFeildNotify(void* param)
 {
 	TNotifyUI* pMsg = (TNotifyUI*)param;
-	if( pMsg->sType == _T("heightchanged") ) {
+	if( pMsg->sType == _T("heightchanged") )
+	{
 		WCHAR szHeight[BUF_128B];
 		_itow_s(pMsg->wParam, szHeight, BUF_128B, 10);
 		this->SetAttribute(L"height", szHeight);
@@ -119,7 +137,16 @@ bool BooFileViewNode::OnTextFeildNotify(void* param)
 	{
 		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
 	}
+	else if( pMsg->sType == _T("setnodefocus")) //接力转发setnodefocus消息
+	{
+		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
+	}
 	return true;
+}
+
+void BooFileViewNode::DoInit()
+{
+	m_text->SetName(this->GetName());
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,6 +181,14 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 	TNotifyUI* pMsg = (TNotifyUI*)param;
 	if( pMsg->sType == _T("createnode") )
 	{
+		int nIndex = GetFocusedNodeIndex(pMsg->pSender);
+		if (-1 != nIndex)
+		{
+			int a = 0;
+		}
+	}
+	else if( pMsg->sType == _T("setnodefocus") )
+	{
 		int a = 0;
 	}
 	return true;
@@ -162,4 +197,23 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 void BooFileViewUI::SetPos(RECT rc)
 {
 	__super::SetPos(rc);
+}
+
+int BooFileViewUI::GetFocusedNodeIndex( CControlUI* pControl )
+{
+	int i=0;
+	bool bFound = false;
+	for (; i<m_items.GetSize(); i++)
+	{
+		if (m_items[i] == pControl)
+		{
+			bFound = true;
+			break;
+		}
+	}
+	if (bFound)
+	{
+		return i;
+	}
+	return -1;
 }

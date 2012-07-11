@@ -1788,12 +1788,18 @@ void CRichEditUI::DoEvent(TEventUI& event)
             m_pTwh->OnTxInPlaceActivate(NULL);
             m_pTwh->GetTextServices()->TxSendMessage(WM_SETFOCUS, 0, 0, 0);
         }
+		m_bFocused = true;
+		Invalidate();
+		return;
     }
     if( event.Type == UIEVENT_KILLFOCUS )  {
         if( m_pTwh ) {
             m_pTwh->OnTxInPlaceActivate(NULL);
             m_pTwh->GetTextServices()->TxSendMessage(WM_KILLFOCUS, 0, 0, 0);
         }
+		m_bFocused = false;
+		Invalidate();
+		return;
     }
     if( event.Type == UIEVENT_TIMER ) {
         if( m_pTwh ) {

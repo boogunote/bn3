@@ -27,20 +27,19 @@
             <HorizontalLayout bordersize="1" bkcolor="#FFFFFFFF" bordercolor="#FF768D9B">
                 <TabLayout name="switch">
                   <BooFileViewUI width="0" height="0" bordercolor="#FF768D9B" inset="1,0,1,0" padding="2,2,2,2" vscrollbar="true">
-                    <BooFileViewNode name="TextUI1" indent="0" width="0" height="272" textpadding="2,0,2,0" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="centerwrap">
-                    </BooFileViewNode>
-                    <BooFileViewNode name="TextUI2" indent="1" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="3" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="3" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="4" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="1" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="3" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
-                    <BooFileViewNode name="TextUI2" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" />
+                    <BooFileViewNode name="TextUI1" indent="0" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI2" indent="1" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI3" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI4" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI5" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI6" indent="3" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI7" indent="3" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI8" indent="4" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI9" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI10" indent="1" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI11" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI12" indent="3" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
+                    <BooFileViewNode name="TextUI13" indent="2" width="0" height="358" textpadding="2,0,2,0" align="wrap" padding="2,2,2,2"/>
                     </BooFileViewUI>
                     <RichEdit padding="2,0,2,0" font="3" align="wrap" />
                     <HorizontalLayout>
