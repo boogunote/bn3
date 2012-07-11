@@ -32,11 +32,13 @@ public:
 	void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
 	bool OnTextFeildNotify(void* param);
 	void DoInit();
+	void SetFocus();
 
 private:
 	CControlUI* m_indent;
 	CButtonUI* m_button;
 	CRichEditUI* m_text;
+public:
 	int	m_nIndent;
 };
 
@@ -44,17 +46,6 @@ class BooFileViewUI : public CVerticalLayoutUI
 {
 public:
 	BooFileViewUI();
-//	{
-// 		CDialogBuilder builder;
-// 		CContainerUI* pComputerExamine = static_cast<CContainerUI*>(builder.Create(_T("BooFileView.xml"), (UINT)0));
-// 		if( pComputerExamine ) {
-// 			this->Add(pComputerExamine);
-// 		}
-// 		else {
-// 			this->RemoveAll();
-// 			return;
-// 		}
-//	}
 
 	LPCTSTR GetClass() const;
 	LPVOID GetInterface(LPCTSTR pstrName);
