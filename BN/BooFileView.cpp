@@ -112,12 +112,12 @@ BooFileViewNode::BooFileViewNode() : m_nIndent(0), m_bExpand(true)
 	this->Add(m_indent);
 
 	m_button = new CButtonUI;
-	m_button->ApplyAttributeList(_T("name=\"changeskinbtn\" bkcolor=\"#FF0000EE\" maxwidth=\"30\""));
+	m_button->ApplyAttributeList(_T("name=\"changeskinbtn\" bkcolor=\"#FF0000EE\" width=\"30\""));
 	this->Add(m_button);
 	m_button->OnNotify += MakeDelegate(this, &BooFileViewNode::OnButtonNotify);
 
 	m_text = new BooTextFieldUI;
-	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF0000FF\" inset=\"2,2,2,2\" rich=\"false\""));
+	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF0000FF\" inset=\"2,2,2,2\""));
 	this->Add(m_text);
 	m_text->OnNotify += MakeDelegate(this, &BooFileViewNode::OnTextFeildNotify);
 }
