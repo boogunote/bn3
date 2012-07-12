@@ -30,6 +30,7 @@ public:
 	LPVOID GetInterface(LPCTSTR pstrName);
 
 	void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
+	bool OnButtonNotify(void* param);
 	bool OnTextFeildNotify(void* param);
 	void DoInit();
 	void SetFocus();
@@ -40,6 +41,7 @@ private:
 	CRichEditUI* m_text;
 public:
 	int	m_nIndent;
+	bool m_bExpand;
 };
 
 class BooFileViewUI : public CVerticalLayoutUI
@@ -53,7 +55,10 @@ public:
 	void DoInit();
 	void SetPos(RECT rc);
 	bool OnNodeNotify(void* param);
-	int GetFocusedNodeIndex( CControlUI* pControl );
+
+	void ToggleNodeState( BooFileViewNode* pSenderNode );
+	int GetFocusedNodeIndex(BooFileViewNode* pNode);
+	bool HasChildrenNode(BooFileViewNode* pNode);
 };
 
 class CDialogBuilderCallbackEx : public IDialogBuilderCallback
