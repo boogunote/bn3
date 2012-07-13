@@ -162,13 +162,17 @@ BooFileViewNode::BooFileViewNode() : m_nIndent(0), m_bExpand(true)
 	this->Add(m_indent);
 
 	m_button = new CButtonUI;
-	int nButtonHeight = 14;
+	int nButtonHeight = 15; //最好是奇数，这样画连接线的时候能够对齐。
 	int nPadding = (g_nTextHeight-nButtonHeight)/2;
 	CStdString strAttr;
-	strAttr.Format(_T("name=\"changeskinbtn\" bkcolor=\"#FF0000EE\" pos=\"0,0,%d,%d\" padding=\"0, %d,0,%d\""),nButtonHeight,nButtonHeight,nPadding,nPadding);
+	strAttr.Format(_T("bkcolor=\"#FF0000EE\" pos=\"0,0,%d,%d\" padding=\"0, %d,0,%d\""),nButtonHeight,nButtonHeight,nPadding,nPadding);
 	m_button->ApplyAttributeList(strAttr);
 	this->Add(m_button);
 	m_button->OnNotify += MakeDelegate(this, &BooFileViewNode::OnButtonNotify);
+
+	CControlUI* pSpaceControl = new CControlUI;
+	pSpaceControl->ApplyAttributeList(_T("width=\"3\""));
+	this->Add(pSpaceControl);
 
 	m_text = new BooTextFieldUI;
 	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF0000FF\" inset=\"2,2,2,2\""));
@@ -261,7 +265,7 @@ void BooFileViewUI::DoInit()
 	BooTestRichEditUI* pTest = new BooTestRichEditUI;
 	pTest->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF0000FF\" inset=\"2,2,2,2\""));
 	pTest->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
-	this->Add(pTest);
+	this->AddAt(pTest, 0);
 	
 // 	for (int i=0; i<m_items.GetSize(); i++)
 // 	{
@@ -325,7 +329,7 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 	}
 	else if ( pMsg->sType == _T("initbooview"))
 	{
-		this->RemoveAll();//删掉文字高度测试控件
+		this->RemoveAt(0);//删掉文字高度测试控件
 
 		BooFileViewNode* pTest = new BooFileViewNode;
 		pTest->ApplyAttributeList(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"0\""));
