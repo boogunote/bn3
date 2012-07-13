@@ -1,6 +1,56 @@
 #include "stdafx.h"
 #include "BooFileView.h"
 
+int g_nTextHeight = 0;
+
+class BooTestRichEditUI : public CRichEditUI
+{
+public:
+	BooTestRichEditUI(){}
+
+	LPCTSTR GetClass() const
+	{
+		return _T("BooTestRichEditUI");
+	}
+	LPVOID GetInterface(LPCTSTR pstrName)
+	{
+		if( _tcscmp(pstrName, _T("BooTestRichEdit")) == 0 ) return static_cast<BooTestRichEditUI*>(this);
+		return CContainerUI::GetInterface(pstrName);
+	}
+
+	void DoInit()
+	{
+		__super::DoInit();
+		this->SetEventMask(ENM_REQUESTRESIZE|ENM_LINK);
+		this->SetText(L".");
+		this->SetText(L"");
+	}
+
+	void OnTxNotify(DWORD iNotify, void *pv)
+	{
+		if( iNotify == EN_REQUESTRESIZE )
+		{
+			REQRESIZE *preqsz = (REQRESIZE *)pv;
+			if (0 != preqsz->rc.bottom &&
+				(m_szRequest.cx != preqsz->rc.right ||	m_szRequest.cy != preqsz->rc.bottom + 4)) //注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
+			{
+ 				m_szRequest.cx = preqsz->rc.right;
+ 				m_szRequest.cy = preqsz->rc.bottom + 4;//注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
+				g_nTextHeight = m_szRequest.cy;
+				m_pManager->SendNotify(this, _T("initbooview"), 0, 0, true); 
+				//大家肯定觉得很奇怪，为什么要在这个富文本控件的OnTxNofty里面发出initbooview消息。
+				//原因是，我必须要知道在当前的字体和字号下一行的高度是多少。这样我才能够确定文字块前面那个 +/- 号小方块的位置。
+				//这个方法很脏，有没有什么好的方法，大家可以贡献一下。
+				//还要注意一点，这个地方SendNotify一定要用异步方式发送。不然的话，在initbooview处理消息的时候，RemoveAll不能把这个测试控件移除
+				//因为同步消息的传输，在RemoveAll的时候这个控件还没加入控件树
+			}
+		}
+	}
+
+private:
+	SIZE m_szRequest;
+};
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooTextFieldUI
@@ -16,7 +66,7 @@ LPCTSTR BooTextFieldUI::GetClass() const
 
 LPVOID BooTextFieldUI::GetInterface(LPCTSTR pstrName)
 {
-	if( _tcscmp(pstrName, _T("BooTextField")) == 0 ) return static_cast<CRichEditUI*>(this);
+	if( _tcscmp(pstrName, _T("BooTextField")) == 0 ) return static_cast<BooTextFieldUI*>(this);
 	return CContainerUI::GetInterface(pstrName);
 }
 
@@ -112,7 +162,11 @@ BooFileViewNode::BooFileViewNode() : m_nIndent(0), m_bExpand(true)
 	this->Add(m_indent);
 
 	m_button = new CButtonUI;
-	m_button->ApplyAttributeList(_T("name=\"changeskinbtn\" bkcolor=\"#FF0000EE\" width=\"30\""));
+	int nButtonHeight = 14;
+	int nPadding = (g_nTextHeight-nButtonHeight)/2;
+	CStdString strAttr;
+	strAttr.Format(_T("name=\"changeskinbtn\" bkcolor=\"#FF0000EE\" pos=\"0,0,%d,%d\" padding=\"0, %d,0,%d\""),nButtonHeight,nButtonHeight,nPadding,nPadding);
+	m_button->ApplyAttributeList(strAttr);
 	this->Add(m_button);
 	m_button->OnNotify += MakeDelegate(this, &BooFileViewNode::OnButtonNotify);
 
@@ -204,10 +258,15 @@ LPVOID BooFileViewUI::GetInterface(LPCTSTR pstrName)
 void BooFileViewUI::DoInit()
 {
 	__super::DoInit();
-	for (int i=0; i<m_items.GetSize(); i++)
-	{
-		static_cast<CControlUI*>(m_items[i])->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
-	}
+	BooTestRichEditUI* pTest = new BooTestRichEditUI;
+	pTest->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF0000FF\" inset=\"2,2,2,2\""));
+	pTest->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
+	this->Add(pTest);
+	
+// 	for (int i=0; i<m_items.GetSize(); i++)
+// 	{
+// 		static_cast<CControlUI*>(m_items[i])->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
+// 	}
 }
 
 bool BooFileViewUI::OnNodeNotify(void* param)
@@ -263,6 +322,15 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 	else if ( pMsg->sType == _T("statebuttonclick"))
 	{
 		ToggleNodeState(static_cast<BooFileViewNode*>(pMsg->pSender));
+	}
+	else if ( pMsg->sType == _T("initbooview"))
+	{
+		this->RemoveAll();//删掉文字高度测试控件
+
+		BooFileViewNode* pTest = new BooFileViewNode;
+		pTest->ApplyAttributeList(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"0\""));
+		pTest->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
+		this->Add(pTest);
 	}
 // 	else if( pMsg->sType == _T("setnodefocus") )
 // 	{
@@ -348,4 +416,13 @@ void BooFileViewUI::ToggleNodeState( BooFileViewNode* pNode )
 			pNode->m_bExpand = bNewVisibleState;
 		}
 	}
+}
+
+CControlUI* CDialogBuilderCallbackEx::CreateControl( LPCTSTR pstrClass )
+{
+	if( _tcscmp(pstrClass, _T("BooFileViewUI")) == 0 ) return new BooFileViewUI;
+	if( _tcscmp(pstrClass, _T("BooFileViewNode")) == 0 ) return new BooFileViewNode;
+	if( _tcscmp(pstrClass, _T("BooTextFieldUI")) == 0 ) return new BooTextFieldUI;
+	if( _tcscmp(pstrClass, _T("BooTestRichEditUI")) == 0 ) return new BooTestRichEditUI;
+	return NULL;
 }

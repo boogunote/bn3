@@ -64,10 +64,5 @@ public:
 class CDialogBuilderCallbackEx : public IDialogBuilderCallback
 {
 public:
-	CControlUI* CreateControl(LPCTSTR pstrClass) 
-	{
-		if( _tcscmp(pstrClass, _T("BooFileViewUI")) == 0 ) return new BooFileViewUI;
-		if( _tcscmp(pstrClass, _T("BooFileViewNode")) == 0 ) return new BooFileViewNode;
-		return NULL;
-	}
+	CControlUI* CreateControl(LPCTSTR pstrClass);
 };
