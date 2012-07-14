@@ -176,7 +176,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\BooFileView.cpp"
+				RelativePath=".\BooFileViewNodeUI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\BooFileViewUI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\BooTextFieldUI.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DialogBuilderCallback.cpp"
 				>
 			</File>
 			<File
@@ -210,7 +222,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\BooFileView.h"
+				RelativePath=".\BooFileViewNodeUI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\BooFileViewUI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\BooTextFieldUI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DialogBuilderCallback.h"
 				>
 			</File>
 			<File
