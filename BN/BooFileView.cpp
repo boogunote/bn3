@@ -155,7 +155,7 @@ void BooTextFieldUI::DoEvent(TEventUI& event)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooFileViewNode
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BooFileViewNode::BooFileViewNode() : m_nIndent(0), m_bExpand(true)
+BooFileViewNode::BooFileViewNode() : m_nIndent(0), m_bExpand(true), m_bHasChild(false)
 {
 	m_indent = new CControlUI;
 	m_indent->ApplyAttributeList(_T("float=\"false\" bordersize=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\""));
@@ -165,7 +165,7 @@ BooFileViewNode::BooFileViewNode() : m_nIndent(0), m_bExpand(true)
 	int nButtonHeight = 15; //最好是奇数，这样画连接线的时候能够对齐。
 	int nPadding = (g_nTextHeight-nButtonHeight)/2;
 	CStdString strAttr;
-	strAttr.Format(_T("bkcolor=\"#FF0000EE\" pos=\"0,0,%d,%d\" padding=\"0, %d,0,%d\""),nButtonHeight,nButtonHeight,nPadding,nPadding);
+	strAttr.Format(_T("pos=\"0,0,%d,%d\" padding=\"0, %d,0,%d\""),nButtonHeight,nButtonHeight,nPadding,nPadding);
 	m_button->ApplyAttributeList(strAttr);
 	this->Add(m_button);
 	m_button->OnNotify += MakeDelegate(this, &BooFileViewNode::OnButtonNotify);
@@ -241,6 +241,24 @@ void BooFileViewNode::SetFocus()
 	m_text->SetFocus();
 }
 
+void BooFileViewNode::UpdateStateButton()
+{
+	if (m_bHasChild)
+	{
+		if (m_bExpand)
+		{
+			m_button->ApplyAttributeList(_T("normalimage=\"file='statenode.png' source='0,15,15,30'\" hotimage=\"file='statenode.png' source='15,15,30,30'\" pushedimage=\"file='statenode.png' source='30,15,45,30'\""));
+		}
+		else
+		{
+			m_button->ApplyAttributeList(_T("normalimage=\"file='statenode.png' source='0,0,15,15'\" hotimage=\"file='statenode.png' source='15,0,30,15'\" pushedimage=\"file='statenode.png' source='30,0,45,15'\""));
+		}
+	}
+	else
+	{
+		m_button->ApplyAttributeList(_T("normalimage=\"file='statenode.png' source='0,30,15,45'\" hotimage=\"file='statenode.png' source='15,30,30,45'\" pushedimage=\"file='statenode.png' source='30,30,45,45'\""));
+	}
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooFileViewUI
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,6 +327,8 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 			else if (CREATENODE_CHILD== pMsg->wParam)
 			{
 				BooFileViewNode* pParentNode = static_cast<BooFileViewNode*>(GetItemAt(nIndex));
+				pParentNode->m_bHasChild = true;
+				pParentNode->UpdateStateButton();
 				if (!pParentNode->m_bExpand)
 				{
 					ToggleNodeState(static_cast<BooFileViewNode*>(pParentNode));
@@ -320,6 +340,7 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 				AddAt(pNode, nIndex+1);
 			}
 			pNode->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
+			pNode->UpdateStateButton();
 			pNode->SetFocus();
 		}
 	}
@@ -331,10 +352,12 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 	{
 		this->RemoveAt(0);//删掉文字高度测试控件
 
-		BooFileViewNode* pTest = new BooFileViewNode;
-		pTest->ApplyAttributeList(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"0\""));
-		pTest->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
-		this->Add(pTest);
+		BooFileViewNode* pFirestNode = new BooFileViewNode;
+		pFirestNode->ApplyAttributeList(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"0\""));
+		pFirestNode->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
+		pFirestNode->m_bHasChild = false;
+		pFirestNode->UpdateStateButton();
+		this->Add(pFirestNode);
 	}
 // 	else if( pMsg->sType == _T("setnodefocus") )
 // 	{
@@ -418,8 +441,11 @@ void BooFileViewUI::ToggleNodeState( BooFileViewNode* pNode )
 				//i--;//调整游标
 			}
 			pNode->m_bExpand = bNewVisibleState;
+			pNode->UpdateStateButton();
 		}
 	}
+
+	
 }
 
 CControlUI* CDialogBuilderCallbackEx::CreateControl( LPCTSTR pstrClass )
