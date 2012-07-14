@@ -11,6 +11,8 @@ public:
 	void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
 	bool OnButtonNotify(void* param);
 	bool OnTextFeildNotify(void* param);
+
+	void SetSelect(bool bSelect);
 	void DoInit();
 	void SetFocus();
 	void UpdateStateButton();
@@ -25,5 +27,6 @@ public:
 	int	m_nIndent;
 	bool m_bExpand;
 	bool m_bHasChild;
-
+	bool m_bSelected;
+	bool m_bDisable;
 };

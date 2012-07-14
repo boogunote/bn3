@@ -154,6 +154,42 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 		pFirestNode->UpdateStateButton();
 		this->Add(pFirestNode);
 	}
+	else if (pMsg->sType == _T("cleanselect"))
+	{
+		for (int i=0; i<m_items.GetSize(); i++)
+		{
+			if (static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected)
+			{
+				static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected = false;
+				static_cast<BooFileViewNodeUI*>(m_items[i])->SetSelect(false);
+			}
+		}
+	}
+	else if (pMsg->sType == _T("movefocus"))
+	{
+		if (pMsg->wParam == 0)
+		{
+			for (int i = GetItemIndex(pMsg->pSender)-1; i>=0; i--)
+			{
+				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
+				{
+					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
+					break;
+				}
+			}
+		}
+		else
+		{
+			for (int i = GetItemIndex(pMsg->pSender)+1; i<m_items.GetSize(); i++)
+			{
+				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
+				{
+					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
+					break;
+				}
+			}
+		}
+	}
 // 	else if( pMsg->sType == _T("setnodefocus") )
 // 	{
 // 		int a = 0;

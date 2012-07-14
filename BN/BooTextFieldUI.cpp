@@ -3,6 +3,8 @@
 #include "BooFileViewNodeUI.h"
 #include "BooFileViewUI.h"
 
+extern int g_nTextHeight;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooTextFieldUI
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,11 +33,21 @@ void BooTextFieldUI::DoInit()
 
 LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-	//提高处理效率
-	if (!this->IsFocused())
+	//提高处理效率，看看是不是发生在本控件上的鼠标消息，或者本控件是不是焦点控件。
+	bool bShouldHandle = false;
+	if (WM_MOUSEFIRST <= uMsg && uMsg <= WM_MOUSELAST)
 	{
-		return 0;
+		POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+		if (!::PtInRect(&m_rcItem, pt))
+		{
+			return 0;
+		}
 	}
+	else if (!this->IsFocused())
+ 	{
+		return 0;
+ 	}
+
 
 	if (WM_KEYDOWN == uMsg)
 	{
@@ -64,11 +76,52 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 						bHandled = TRUE;
 					}
 				}
+				break;
+			}
+		case VK_UP:
+			{
+				POINT pt;
+				::GetCaretPos(&pt);
+				if (abs(pt.y-m_rcItem.top) < g_nTextHeight)
+				{
+					m_pManager->SendNotify(this, _T("movefocus"), 0);
+				}
+				bHandled = true;
+				break;
+			}
+		case VK_DOWN:
+			{
+				POINT pt;
+				::GetCaretPos(&pt);
+				if (abs(pt.y-m_rcItem.bottom) < g_nTextHeight*2)
+				{
+					m_pManager->SendNotify(this, _T("movefocus"), 1);
+				}
+				bHandled = true;
+				break;
 			}
 		default:
 			;
 		}
 	}
+	else if (WM_LBUTTONDOWN == uMsg)
+	{
+		POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+
+		if ((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			m_pManager->SendNotify(this, _T("selectnode")); //注意，这里select的意思不是焦点所在，而是按住ctrl选择
+		}
+		else if ((GetKeyState(VK_SHIFT) & 0x8000))
+		{
+			m_pManager->SendNotify(this, _T("selectmultinode"));
+		}
+		else
+		{
+			m_pManager->SendNotify(this, _T("cleanselect"));
+		}
+	}
+
 	if (bHandled)
 	{
 		return 0;

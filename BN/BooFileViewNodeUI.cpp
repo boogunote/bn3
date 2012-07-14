@@ -8,7 +8,7 @@ extern int g_nTextHeight;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooFileViewNode
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasChild(false)
+BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasChild(false), m_bSelected(false), m_bDisable(false)
 {
 	m_indent = new CControlUI;
 	m_indent->ApplyAttributeList(_T("float=\"false\" bordersize=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\""));
@@ -59,6 +59,7 @@ bool BooFileViewNodeUI::OnButtonNotify(void* param)
 	TNotifyUI* pMsg = (TNotifyUI*)param;
 	if (pMsg->sType == _T("click"))
 	{
+		m_text->SetFocus();
 		m_pManager->SendNotify(this, _T("statebuttonclick"), pMsg->wParam, pMsg->lParam);
 	}
 	return true;
@@ -74,6 +75,20 @@ bool BooFileViewNodeUI::OnTextFeildNotify(void* param)
 		this->SetAttribute(L"height", szHeight);
 	}
 	else if (pMsg->sType == _T("createnode")) //接力转发createnode消息
+	{
+		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
+	}
+	else if (pMsg->sType == _T("selectnode"))
+	{
+		m_bSelected = !m_bSelected;
+		SetSelect(m_bSelected);
+
+	}
+	else if (pMsg->sType == _T("cleanselect"))
+	{
+		m_pManager->SendNotify(this, _T("cleanselect"));
+	}
+	else if (pMsg->sType == _T("movefocus"))
 	{
 		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
 	}
@@ -110,5 +125,18 @@ void BooFileViewNodeUI::UpdateStateButton()
 	else
 	{
 		m_button->ApplyAttributeList(_T("normalimage=\"file='statenode.png' source='0,30,15,45'\" hotimage=\"file='statenode.png' source='15,30,30,45'\" pushedimage=\"file='statenode.png' source='30,30,45,45'\""));
+	}
+}
+
+void BooFileViewNodeUI::SetSelect(bool bSelect)
+{
+	m_bSelected = bSelect;
+	if (m_bSelected)
+	{
+		m_text->SetAttribute(_T("bkcolor"),_T("#FF99D9EA"));
+	}
+	else
+	{
+		m_text->SetAttribute(_T("bkcolor"),_T("#FFFFFFFF"));
 	}
 }
