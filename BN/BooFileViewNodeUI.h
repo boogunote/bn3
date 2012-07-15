@@ -22,11 +22,11 @@ private:
 	CButtonUI* m_button;
 	CRichEditUI* m_text;
 
-
 public:
 	int	m_nIndent;
 	bool m_bExpand;
 	bool m_bHasChild;
 	bool m_bSelected;
-	bool m_bDisable;
+	bool m_bOneLine;
+	CStdString m_strContent;
 };

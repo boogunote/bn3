@@ -8,7 +8,7 @@ extern int g_nTextHeight;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooFileViewNode
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasChild(false), m_bSelected(false), m_bDisable(false)
+BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasChild(false), m_bSelected(false), m_bOneLine(false), m_strContent(L"")
 {
 	m_indent = new CControlUI;
 	m_indent->ApplyAttributeList(_T("float=\"false\" bordersize=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\""));
@@ -18,7 +18,7 @@ BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasCh
 	int nButtonHeight = 15; //最好是奇数，这样画连接线的时候能够对齐。
 	int nPadding = (g_nTextHeight-nButtonHeight)/2;
 	CStdString strAttr;
-	strAttr.Format(_T("pos=\"0,0,%d,%d\" padding=\"0, %d,0,%d\""),nButtonHeight,nButtonHeight,nPadding,nPadding);
+	strAttr.Format(_T("pos=\"0,0,%d,%d\" padding=\"0, %d,0,%d\" menu=\"true\""),nButtonHeight,nButtonHeight,nPadding,nPadding);
 	m_button->ApplyAttributeList(strAttr);
 	this->Add(m_button);
 	m_button->OnNotify += MakeDelegate(this, &BooFileViewNodeUI::OnButtonNotify);
@@ -61,6 +61,25 @@ bool BooFileViewNodeUI::OnButtonNotify(void* param)
 	{
 		m_text->SetFocus();
 		m_pManager->SendNotify(this, _T("statebuttonclick"), pMsg->wParam, pMsg->lParam);
+	}
+	else if (pMsg->sType == _T("menu"))
+	{
+		m_text->SetFocus();
+		if (!m_bOneLine)
+		{
+			m_strContent = m_text->GetText();
+			m_text->SetText(m_strContent.Mid(0, 10)+L"...");
+			m_text->SetReadOnly(true);
+			m_text->SetMouseEnabled(false);
+			m_bOneLine = true;
+		}
+		else
+		{
+			m_text->SetText(m_strContent);
+			m_text->SetReadOnly(false);
+			m_text->SetMouseEnabled(true);
+			m_bOneLine = false;
+		}
 	}
 	return true;
 }
