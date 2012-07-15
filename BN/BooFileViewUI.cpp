@@ -95,7 +95,42 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 	{
 		this->RemoveAt(0);//删掉文字高度测试控件
 
-		CreateNode(0, 0);
+		m_strBooFilePath = L"D:\\test.boo";
+
+		HANDLE hFile = CreateFileW(m_strBooFilePath, GENERIC_READ, FILE_SHARE_DELETE|FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		DWORD error = GetLastError();
+		HANDLE hMap = ::CreateFileMapping(hFile, NULL, PAGE_READONLY, 0, 0, NULL);
+		BYTE* lpvFile = (BYTE *)::MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
+		DWORD dwFileSize = ::GetFileSize(hFile, NULL);
+
+		if (m_xml.LoadFromMem(lpvFile, dwFileSize))
+		{
+			CMarkupNode root = m_xml.GetRoot();
+			if (root.IsValid())
+			{
+				LPCTSTR pstrClass = NULL;
+				int nAttributes = 0;
+				LPCTSTR pstrName = NULL;
+				LPCTSTR pstrValue = NULL;
+				LPTSTR pstr = NULL;
+				for( CMarkupNode node = root.GetChild() ; node.IsValid(); node = node.GetSibling() )
+				{
+					pstrClass = node.GetName();
+					nAttributes = node.GetAttributeCount();
+					for( int i = 0; i < nAttributes; i++ )
+					{
+						pstrName = node.GetAttributeName(i);
+						pstrValue = node.GetAttributeValue(i);
+					}
+				}
+			}
+		}
+
+		UnmapViewOfFile(lpvFile);
+		CloseHandle(hMap);
+		CloseHandle(hFile);
+
+		//CreateNode(0, 0);
 
 	}
 	else if( pMsg->sType == _T("selectmultinode") )

@@ -27,7 +27,6 @@
       <HorizontalLayout bordersize="1" bkcolor="#FFFFFFFF" bordercolor="#FF768D9B">
         <TabLayout name="switch">
           <BooFileViewUI width="0" height="0" bordercolor="#FF768D9B" inset="1,0,1,0" padding="2,2,2,2" vscrollbar="true"/>
-          <BooFileViewUI width="0" height="0" bordercolor="#FF768D9B" inset="1,0,1,0" padding="2,2,2,2" vscrollbar="true"/>
           <HorizontalLayout>
             <Text text="第三页" float="true" pos="335,180,0,0" width="265" height="120" relativepos="50,50,0,0" textpadding="2,0,2,0" font="4" align="wrap" />
           </HorizontalLayout>

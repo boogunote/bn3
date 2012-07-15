@@ -32,4 +32,6 @@ public:
 
 public:
 	int m_nShiftSelectStart;
+	CStdString m_strBooFilePath;
+	CMarkup m_xml;
 };
