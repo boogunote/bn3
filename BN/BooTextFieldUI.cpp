@@ -53,53 +53,6 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	{
 		switch (wParam)
 		{
-		case VK_RETURN:
-			{
-				if ((GetKeyState(VK_CONTROL) & 0x8000) && (GetKeyState(VK_SHIFT) & 0x8000))
-				{
-					if(GetManager()->GetFocus() == this) {
-						m_pManager->SendNotify(this, _T("createnode"), CREATENODE_PREVIOUS);
-						bHandled = TRUE;
-					}
-				}
-				else if (GetKeyState(VK_CONTROL) & 0x8000)
-				{
-					if(GetManager()->GetFocus() == this) {
-						m_pManager->SendNotify(this, _T("createnode"), CREATENODE_NEXT);
-						bHandled = TRUE;
-					}
-				}
-				else if (GetKeyState(VK_SHIFT) & 0x8000)
-				{
-					if(GetManager()->GetFocus() == this) {
-						m_pManager->SendNotify(this, _T("createnode"), CREATENODE_CHILD);
-						bHandled = TRUE;
-					}
-				}
-				break;
-			}
-		case VK_UP:
-			{
-				POINT pt;
-				::GetCaretPos(&pt);
-				if (abs(pt.y-m_rcItem.top) < g_nTextHeight*0.5)
-				{
-					m_pManager->SendNotify(this, _T("movefocus"), 0);
-					bHandled = true;
-				}
-				break;
-			}
-		case VK_DOWN:
-			{
-				POINT pt;
-				::GetCaretPos(&pt);
-				if (abs(pt.y-m_rcItem.bottom) < g_nTextHeight*1.5)
-				{
-					m_pManager->SendNotify(this, _T("movefocus"), 1);
-					bHandled = true;
-				}
-				break;
-			}
 		default:
 			;
 		}
@@ -111,14 +64,12 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 		if ((GetKeyState(VK_CONTROL) & 0x8000))
 		{
 			m_pManager->SendNotify(this, _T("selectnode")); //注意，这里select的意思不是焦点所在，而是按住ctrl选择
+			bHandled = true;
 		}
 		else if ((GetKeyState(VK_SHIFT) & 0x8000))
 		{
 			m_pManager->SendNotify(this, _T("selectmultinode"));
-		}
-		else
-		{
-			m_pManager->SendNotify(this, _T("cleanselect"));
+			bHandled = true;
 		}
 	}
 

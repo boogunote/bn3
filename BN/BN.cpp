@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <exdisp.h>
 #include <comdef.h>
-#include "BooFileView.h"
+#include "DialogBuilderCallback.h"
 
 class CMainFrameWnd : public CWindowWnd, public INotifyUI
 {

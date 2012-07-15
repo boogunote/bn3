@@ -74,21 +74,7 @@ bool BooFileViewNodeUI::OnTextFeildNotify(void* param)
 		_itow_s(pMsg->wParam, szHeight, BUF_128B, 10);
 		this->SetAttribute(L"height", szHeight);
 	}
-	else if (pMsg->sType == _T("createnode")) //接力转发createnode消息
-	{
-		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
-	}
 	else if (pMsg->sType == _T("selectnode"))
-	{
-		m_bSelected = !m_bSelected;
-		SetSelect(m_bSelected);
-
-	}
-	else if (pMsg->sType == _T("cleanselect"))
-	{
-		m_pManager->SendNotify(this, _T("cleanselect"));
-	}
-	else if (pMsg->sType == _T("movefocus"))
 	{
 		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
 	}

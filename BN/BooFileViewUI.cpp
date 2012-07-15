@@ -85,51 +85,9 @@ void BooFileViewUI::DoInit()
 
 bool BooFileViewUI::OnNodeNotify(void* param)
 {
-	//CleanSelect();
 	TNotifyUI* pMsg = (TNotifyUI*)param;
-	if( pMsg->sType == _T("createnode") )
-	{
-		int nIndex = GetFocusedNodeIndex(static_cast<BooFileViewNodeUI*>(pMsg->pSender));
-		int nIndent = static_cast<BooFileViewNodeUI*>(GetItemAt(nIndex))->m_nIndent;
-		BooFileViewNodeUI* pNode = NULL;
-		if (-1 != nIndex)
-		{
-			if (CREATENODE_NEXT == pMsg->wParam)
-			{
-				int i=nIndex+1;
-				for (; i<m_items.GetSize(); i++)
-				{
-					if (static_cast<BooFileViewNodeUI*>(GetItemAt(i))->m_nIndent <= nIndent)
-					{
-						break;
-					}
-				}
-				pNode = CreateNode(nIndent, i);
-			}
-			else if (CREATENODE_PREVIOUS== pMsg->wParam)
-			{
-				pNode = CreateNode(nIndent, nIndex);
-			}
-			else if (CREATENODE_CHILD== pMsg->wParam)
-			{
-				BooFileViewNodeUI* pParentNode = static_cast<BooFileViewNodeUI*>(GetItemAt(nIndex));
-				pParentNode->m_bHasChild = true;
-				pParentNode->UpdateStateButton();
-				if (!pParentNode->m_bExpand)
-				{
-					ToggleNodeState(static_cast<BooFileViewNodeUI*>(pParentNode));
-				}
-				pNode = CreateNode(nIndent+1, nIndent+1);
-			}
 
-			if (pNode)
-			{
-				pNode->SetFocus();
-			}
-			
-		}
-	}
-	else if ( pMsg->sType == _T("statebuttonclick"))
+	if ( pMsg->sType == _T("statebuttonclick"))
 	{
 		ToggleNodeState(static_cast<BooFileViewNodeUI*>(pMsg->pSender));
 	}
@@ -139,38 +97,6 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 
 		CreateNode(0, 0);
 
-	}
-	else if (pMsg->sType == _T("cleanselect"))
-	{
-		CleanSelect();
-
-	}
-	else if (pMsg->sType == _T("movefocus"))
-	{
-		if (pMsg->wParam == 0)
-		{
-			for (int i = GetItemIndex(pMsg->pSender)-1; i>=0; i--)
-			{
-				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
-				{
-					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
-					m_nShiftSelectStart = i;
-					break;
-				}
-			}
-		}
-		else
-		{
-			for (int i = GetItemIndex(pMsg->pSender)+1; i<m_items.GetSize(); i++)
-			{
-				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
-				{
-					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
-					m_nShiftSelectStart = i;
-					break;
-				}
-			}
-		}
 	}
 	else if( pMsg->sType == _T("selectmultinode") )
 	{
@@ -187,6 +113,16 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 			{
 				static_cast<BooFileViewNodeUI*>(m_items[i])->SetSelect(true);
 			}
+			//最后一个节点如果是收起状态的话，子节点都要选上
+			if (static_cast<BooFileViewNodeUI*>(m_items[nEnd])->m_bHasChild
+				&& !static_cast<BooFileViewNodeUI*>(m_items[nEnd])->m_bExpand)
+			{
+				for (int i=nEnd; i<m_items.GetSize() && static_cast<BooFileViewNodeUI*>(m_items[i])->m_nIndent > static_cast<BooFileViewNodeUI*>(m_items[nEnd])->m_nIndent; i++)
+				{
+					static_cast<BooFileViewNodeUI*>(m_items[i])->SetSelect(true);
+				}
+			}
+			
 		}
 	}
 	else if ( pMsg->sType == _T("setfocus"))
@@ -197,6 +133,19 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 		else
 		{
 			m_nShiftSelectStart = GetItemIndex(pMsg->pSender);
+		}
+	}
+	else if (pMsg->sType == _T("selectnode"))
+	{
+		BooFileViewNodeUI* pNode  = static_cast<BooFileViewNodeUI*>(pMsg->pSender);
+		bool bSelected = !pNode->m_bSelected;
+		pNode->SetSelect(bSelected);
+		if (!pNode->m_bExpand)
+		{
+			for (int i=GetItemIndex(pNode); i<m_items.GetSize() && static_cast<BooFileViewNodeUI*>(m_items[i])->m_nIndent > pNode->m_nIndent; i++)
+			{
+				static_cast<BooFileViewNodeUI*>(m_items[i])->SetSelect(bSelected);
+			}
 		}
 	}
 	return true;
@@ -210,46 +159,18 @@ LRESULT BooFileViewUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 	{
 		switch (wParam)
 		{
-		case VK_DELETE:
-			{
-				if (GetKeyState(VK_CONTROL) & 0x8000)
-				{
-					//下面是一个小技巧，把焦点所在文字块的节点也设成selected。然后在后面的for循环里面可以一起删掉
-					BooTextFieldUI * pTextField = dynamic_cast<BooTextFieldUI *>(m_pManager->GetFocus());
-					if (NULL != pTextField)
-					{
-						BooFileViewNodeUI *pNode = dynamic_cast<BooFileViewNodeUI *>(pTextField->GetParent());
-						if (NULL != pNode)
-						{
-							pNode->m_bSelected = true;
-						}
-					}
-					//删除所有select的节点
-					for (int i=0; i<m_items.GetSize(); i++)
-					{
-						if (static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected)
-						{
-							if( m_bAutoDestroy ) {
-								delete static_cast<BooFileViewNodeUI*>(m_items[i]);
-							}
-							m_items.Remove(i);
-							i--;//删除后调整迭代计数器
-						}
-					}
-
-					if (m_items.GetSize() == 0)
-					{
-						CreateNode(0,0);
-					}
-
-					NeedUpdate();
-
-					bHandled = true;
-				}
-				break;
-			}
-		default:
-			break;
+		case VK_DELETE:	OnDeleteKeyDown(bHandled); break;
+		case VK_RETURN:	OnReturnKeyDown(bHandled); break;
+		case VK_UP: OnUpKeyDown(); break;
+		case VK_DOWN: OnDownKeyDown(); break;
+		default: break;
+		}
+	}
+	else if (WM_LBUTTONDOWN == uMsg)
+	{
+		if (!((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_SHIFT) & 0x8000)))
+		{
+			CleanSelect();
 		}
 	}
 	return 0;
@@ -260,29 +181,21 @@ void BooFileViewUI::SetPos(RECT rc)
 	__super::SetPos(rc);
 }
 
-int BooFileViewUI::GetFocusedNodeIndex(BooFileViewNodeUI* pNode)
+BooFileViewNodeUI* BooFileViewUI::GetFocusedNode()
 {
-	int i=0;
-	bool bFound = false;
-	for (; i<m_items.GetSize(); i++)
+	BooFileViewNodeUI* pFocusedNode = NULL;
+	BooTextFieldUI *pTextField = dynamic_cast<BooTextFieldUI *>(GetManager()->GetFocus());
+	if (NULL != pTextField)
 	{
-		if (m_items[i] == pNode)
-		{
-			bFound = true;
-			break;
-		}
+		pFocusedNode = dynamic_cast<BooFileViewNodeUI *>(pTextField->GetParent());
 	}
-	if (bFound)
-	{
-		return i;
-	}
-	return -1;
+	return pFocusedNode;
 }
 
 bool BooFileViewUI::HasChildrenNode(BooFileViewNodeUI* pNode)
 {
 	bool bHasChildren = false;
-	int nIndex = GetFocusedNodeIndex(pNode);
+	int nIndex = GetItemIndex(pNode);
 	if (nIndex >= 0 && nIndex <= m_items.GetSize()-2) //最后一个节点必然没有子节点所以<= -2
 	{
 		if (static_cast<BooFileViewNodeUI*>(m_items[nIndex+1])->m_nIndent > pNode->m_nIndent)
@@ -299,7 +212,7 @@ bool BooFileViewUI::HasChildrenNode(BooFileViewNodeUI* pNode)
 
 void BooFileViewUI::ToggleNodeState( BooFileViewNodeUI* pNode )
 {
-	int nIndex = GetFocusedNodeIndex(pNode);
+	int nIndex = GetItemIndex(pNode);
 	//找到节点，并且节点不是最后一个
 	if (nIndex >= 0 && nIndex < m_items.GetSize()-1)
 	{
@@ -361,4 +274,138 @@ BooFileViewNodeUI* BooFileViewUI::CreateNode(int nIndent, int nInsertAt)
 	this->AddAt(pNewNode, nInsertAt);
 	m_nShiftSelectStart = nInsertAt;
 	return pNewNode;
+}
+
+void BooFileViewUI::OnDeleteKeyDown( bool& bHandled )
+{
+	if (GetKeyState(VK_CONTROL) & 0x8000)
+	{
+		//下面是一个小技巧，把焦点所在文字块的节点也设成selected。然后在后面的for循环里面可以一起删掉
+		BooTextFieldUI * pTextField = dynamic_cast<BooTextFieldUI *>(m_pManager->GetFocus());
+		if (NULL != pTextField)
+		{
+			BooFileViewNodeUI *pNode = dynamic_cast<BooFileViewNodeUI *>(pTextField->GetParent());
+			if (NULL != pNode)
+			{
+				pNode->m_bSelected = true;
+			}
+		}
+		//删除所有select的节点
+		for (int i=0; i<m_items.GetSize(); i++)
+		{
+			if (static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected)
+			{
+				if( m_bAutoDestroy ) {
+					delete static_cast<BooFileViewNodeUI*>(m_items[i]);
+				}
+				m_items.Remove(i);
+				i--;//删除后调整迭代计数器
+			}
+		}
+
+		if (m_items.GetSize() == 0)
+		{
+			CreateNode(0,0);
+		}
+
+		NeedUpdate();
+
+		bHandled = true;
+	}
+}
+
+void BooFileViewUI::OnReturnKeyDown( bool& bHandled )
+{
+	if ((GetKeyState(VK_CONTROL) & 0x8000) || (GetKeyState(VK_SHIFT) & 0x8000))
+	{
+		BooFileViewNodeUI* pFocusedNode = GetFocusedNode();
+		if (pFocusedNode)
+		{
+			int nIndex = GetItemIndex(pFocusedNode);
+			int nIndent = static_cast<BooFileViewNodeUI*>(GetItemAt(nIndex))->m_nIndent;
+			BooFileViewNodeUI* pNode = NULL;
+			if (-1 != nIndex)
+			{
+				if ((GetKeyState(VK_CONTROL) & 0x8000) && (GetKeyState(VK_SHIFT) & 0x8000))
+				{
+					pNode = CreateNode(nIndent, nIndex);
+					bHandled = true;
+				}
+				else if (GetKeyState(VK_CONTROL) & 0x8000)
+				{
+					int i=nIndex+1;
+					for (; i<m_items.GetSize(); i++)
+					{
+						if (static_cast<BooFileViewNodeUI*>(GetItemAt(i))->m_nIndent <= nIndent)
+						{
+							break;
+						}
+					}
+					pNode = CreateNode(nIndent, i);
+					bHandled = true;
+				}
+				else if (GetKeyState(VK_SHIFT) & 0x8000)
+				{
+					BooFileViewNodeUI* pParentNode = static_cast<BooFileViewNodeUI*>(GetItemAt(nIndex));
+					pParentNode->m_bHasChild = true;
+					pParentNode->UpdateStateButton();
+					if (!pParentNode->m_bExpand)
+					{
+						ToggleNodeState(static_cast<BooFileViewNodeUI*>(pParentNode));
+					}
+					pNode = CreateNode(nIndent+1, nIndent+1);
+					bHandled = true;
+				}
+
+				if (pNode)
+				{
+					pNode->SetFocus();
+				}
+			}
+		}
+	}
+}
+
+void BooFileViewUI::OnUpKeyDown()
+{
+	BooFileViewNodeUI* pFocusedNode = GetFocusedNode();
+	if (pFocusedNode)
+	{
+		POINT pt;
+		::GetCaretPos(&pt);
+		if (abs(pt.y - pFocusedNode->GetPos().top) < g_nTextHeight*0.5)
+		{
+			for (int i = GetItemIndex(pFocusedNode)-1; i>=0; i--)
+			{
+				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
+				{
+					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
+					m_nShiftSelectStart = i;
+					break;
+				}
+			}
+		}
+	}
+}
+
+void BooFileViewUI::OnDownKeyDown()
+{
+	BooFileViewNodeUI* pFocusedNode = GetFocusedNode();
+	if (pFocusedNode)
+	{
+		POINT pt;
+		::GetCaretPos(&pt);
+		if (abs(pt.y - pFocusedNode->GetPos().bottom) < g_nTextHeight*1.5)
+		{
+			for (int i = GetItemIndex(pFocusedNode)+1; i<m_items.GetSize(); i++)
+			{
+				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
+				{
+					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
+					m_nShiftSelectStart = i;
+					break;
+				}
+			}
+		}
+	}
 }

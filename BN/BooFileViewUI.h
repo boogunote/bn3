@@ -19,9 +19,13 @@ public:
 	BooFileViewNodeUI* CreateNode(int nIndent, int nInsertAt);
 	LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+	void OnDownKeyDown();
+	void OnUpKeyDown();
+	void OnReturnKeyDown( bool& bHandled );
+	void OnDeleteKeyDown( bool& bHandled );
 	void CleanSelect();
 	void ToggleNodeState( BooFileViewNodeUI* pSenderNode );
-	int GetFocusedNodeIndex(BooFileViewNodeUI* pNode);
+	BooFileViewNodeUI* GetFocusedNode();
 	bool HasChildrenNode(BooFileViewNodeUI* pNode);
 
 public:
