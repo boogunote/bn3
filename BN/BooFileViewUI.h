@@ -23,4 +23,7 @@ public:
 	void ToggleNodeState( BooFileViewNodeUI* pSenderNode );
 	int GetFocusedNodeIndex(BooFileViewNodeUI* pNode);
 	bool HasChildrenNode(BooFileViewNodeUI* pNode);
+
+public:
+	int m_nShiftSelectStart;
 };

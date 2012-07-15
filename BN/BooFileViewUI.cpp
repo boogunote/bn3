@@ -57,7 +57,7 @@ private:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooFileViewUI
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BooFileViewUI::BooFileViewUI()
+BooFileViewUI::BooFileViewUI() : m_nShiftSelectStart(-1)
 {
 }
 
@@ -81,10 +81,6 @@ void BooFileViewUI::DoInit()
 	this->AddAt(pTest, 0);
 	
 	m_pManager->AddMessageFilter(this);
-// 	for (int i=0; i<m_items.GetSize(); i++)
-// 	{
-// 		static_cast<CControlUI*>(m_items[i])->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
-// 	}
 }
 
 bool BooFileViewUI::OnNodeNotify(void* param)
@@ -158,6 +154,7 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
 				{
 					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
+					m_nShiftSelectStart = i;
 					break;
 				}
 			}
@@ -169,15 +166,39 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
 				{
 					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
+					m_nShiftSelectStart = i;
 					break;
 				}
 			}
 		}
 	}
-// 	else if( pMsg->sType == _T("setnodefocus") )
-// 	{
-// 		int a = 0;
-// 	}
+	else if( pMsg->sType == _T("selectmultinode") )
+	{
+		int nSelectIndex = GetItemIndex(pMsg->pSender);
+		if (-1 == m_nShiftSelectStart)
+		{
+			m_nShiftSelectStart = nSelectIndex;
+		}
+		else
+		{
+			int nStart = min(m_nShiftSelectStart, nSelectIndex);
+			int nEnd = max(m_nShiftSelectStart, nSelectIndex);
+			for (int i=nStart; i<=nEnd; i++)
+			{
+				static_cast<BooFileViewNodeUI*>(m_items[i])->SetSelect(true);
+			}
+		}
+	}
+	else if ( pMsg->sType == _T("setfocus"))
+	{
+		if (GetKeyState(VK_SHIFT) & 0x8000)
+		{
+		}
+		else
+		{
+			m_nShiftSelectStart = GetItemIndex(pMsg->pSender);
+		}
+	}
 	return true;
 }
 
@@ -185,48 +206,51 @@ LRESULT BooFileViewUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 {
 	if (!IsVisible()) return 0;
 
-	switch (wParam)
+	if (WM_KEYDOWN == uMsg)
 	{
-	case VK_DELETE:
+		switch (wParam)
 		{
-			if (GetKeyState(VK_CONTROL) & 0x8000)
+		case VK_DELETE:
 			{
-				//下面是一个小技巧，把焦点所在文字块的节点也设成selected。然后在后面的for循环里面可以一起删掉
-				BooTextFieldUI * pTextField = dynamic_cast<BooTextFieldUI *>(m_pManager->GetFocus());
-				if (NULL != pTextField)
+				if (GetKeyState(VK_CONTROL) & 0x8000)
 				{
-					BooFileViewNodeUI *pNode = dynamic_cast<BooFileViewNodeUI *>(pTextField->GetParent());
-					if (NULL != pNode)
+					//下面是一个小技巧，把焦点所在文字块的节点也设成selected。然后在后面的for循环里面可以一起删掉
+					BooTextFieldUI * pTextField = dynamic_cast<BooTextFieldUI *>(m_pManager->GetFocus());
+					if (NULL != pTextField)
 					{
-						pNode->m_bSelected = true;
-					}
-				}
-				//删除所有select的节点
-				for (int i=0; i<m_items.GetSize(); i++)
-				{
-					if (static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected)
-					{
-						if( m_bAutoDestroy ) {
-							delete static_cast<BooFileViewNodeUI*>(m_items[i]);
+						BooFileViewNodeUI *pNode = dynamic_cast<BooFileViewNodeUI *>(pTextField->GetParent());
+						if (NULL != pNode)
+						{
+							pNode->m_bSelected = true;
 						}
-						m_items.Remove(i);
-						i--;//删除后调整迭代计数器
 					}
+					//删除所有select的节点
+					for (int i=0; i<m_items.GetSize(); i++)
+					{
+						if (static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected)
+						{
+							if( m_bAutoDestroy ) {
+								delete static_cast<BooFileViewNodeUI*>(m_items[i]);
+							}
+							m_items.Remove(i);
+							i--;//删除后调整迭代计数器
+						}
+					}
+
+					if (m_items.GetSize() == 0)
+					{
+						CreateNode(0,0);
+					}
+
+					NeedUpdate();
+
+					bHandled = true;
 				}
-
-				if (m_items.GetSize() == 0)
-				{
-					CreateNode(0,0);
-				}
-
-				NeedUpdate();
-
-				bHandled = true;
+				break;
 			}
+		default:
 			break;
 		}
-	default:
-		break;
 	}
 	return 0;
 }
@@ -335,5 +359,6 @@ BooFileViewNodeUI* BooFileViewUI::CreateNode(int nIndent, int nInsertAt)
 	pNewNode->m_bHasChild = false;
 	pNewNode->UpdateStateButton();
 	this->AddAt(pNewNode, nInsertAt);
+	m_nShiftSelectStart = nInsertAt;
 	return pNewNode;
 }

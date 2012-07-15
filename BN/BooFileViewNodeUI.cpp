@@ -92,10 +92,15 @@ bool BooFileViewNodeUI::OnTextFeildNotify(void* param)
 	{
 		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
 	}
-	// 	else if( pMsg->sType == _T("setnodefocus")) //接力转发setnodefocus消息
-	// 	{
-	// 		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
-	// 	}
+	else if (pMsg->sType == _T("selectmultinode"))
+	{
+		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
+	}
+	else if( pMsg->sType == _T("setfocus")) //接力转发setnodefocus消息
+	{
+		m_pManager->SendNotify(this, pMsg->sType, pMsg->wParam, pMsg->lParam);
+	}
+
 	return true;
 }
 
