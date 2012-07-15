@@ -82,22 +82,22 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 			{
 				POINT pt;
 				::GetCaretPos(&pt);
-				if (abs(pt.y-m_rcItem.top) < g_nTextHeight)
+				if (abs(pt.y-m_rcItem.top) < g_nTextHeight*0.5)
 				{
 					m_pManager->SendNotify(this, _T("movefocus"), 0);
+					bHandled = true;
 				}
-				bHandled = true;
 				break;
 			}
 		case VK_DOWN:
 			{
 				POINT pt;
 				::GetCaretPos(&pt);
-				if (abs(pt.y-m_rcItem.bottom) < g_nTextHeight*2)
+				if (abs(pt.y-m_rcItem.bottom) < g_nTextHeight*1.5)
 				{
 					m_pManager->SendNotify(this, _T("movefocus"), 1);
+					bHandled = true;
 				}
-				bHandled = true;
 				break;
 			}
 		default:

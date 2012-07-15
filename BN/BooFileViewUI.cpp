@@ -80,6 +80,7 @@ void BooFileViewUI::DoInit()
 	pTest->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
 	this->AddAt(pTest, 0);
 	
+	m_pManager->AddMessageFilter(this);
 // 	for (int i=0; i<m_items.GetSize(); i++)
 // 	{
 // 		static_cast<CControlUI*>(m_items[i])->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
@@ -88,36 +89,30 @@ void BooFileViewUI::DoInit()
 
 bool BooFileViewUI::OnNodeNotify(void* param)
 {
+	//CleanSelect();
 	TNotifyUI* pMsg = (TNotifyUI*)param;
 	if( pMsg->sType == _T("createnode") )
 	{
 		int nIndex = GetFocusedNodeIndex(static_cast<BooFileViewNodeUI*>(pMsg->pSender));
+		int nIndent = static_cast<BooFileViewNodeUI*>(GetItemAt(nIndex))->m_nIndent;
+		BooFileViewNodeUI* pNode = NULL;
 		if (-1 != nIndex)
 		{
-			BooFileViewNodeUI* pNode = new BooFileViewNodeUI();
 			if (CREATENODE_NEXT == pMsg->wParam)
 			{
-				pNode->m_nIndent = static_cast<BooFileViewNodeUI*>(GetItemAt(nIndex))->m_nIndent;
-				CStdString strAttr;
-				strAttr.Format(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"%d\""), pNode->m_nIndent);
-				pNode->ApplyAttributeList(strAttr);
 				int i=nIndex+1;
 				for (; i<m_items.GetSize(); i++)
 				{
-					if (static_cast<BooFileViewNodeUI*>(GetItemAt(i))->m_nIndent <= pNode->m_nIndent)
+					if (static_cast<BooFileViewNodeUI*>(GetItemAt(i))->m_nIndent <= nIndent)
 					{
 						break;
 					}
 				}
-				AddAt(pNode, i);
+				pNode = CreateNode(nIndent, i);
 			}
 			else if (CREATENODE_PREVIOUS== pMsg->wParam)
 			{
-				pNode->m_nIndent = static_cast<BooFileViewNodeUI*>(GetItemAt(nIndex))->m_nIndent;
-				CStdString strAttr;
-				strAttr.Format(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"%d\""), pNode->m_nIndent);
-				pNode->ApplyAttributeList(strAttr);
-				AddAt(pNode, nIndex);
+				pNode = CreateNode(nIndent, nIndex);
 			}
 			else if (CREATENODE_CHILD== pMsg->wParam)
 			{
@@ -128,15 +123,14 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 				{
 					ToggleNodeState(static_cast<BooFileViewNodeUI*>(pParentNode));
 				}
-				pNode->m_nIndent = pParentNode->m_nIndent+1;
-				CStdString strAttr;
-				strAttr.Format(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"%d\""), pNode->m_nIndent);
-				pNode->ApplyAttributeList(strAttr);
-				AddAt(pNode, nIndex+1);
+				pNode = CreateNode(nIndent+1, nIndent+1);
 			}
-			pNode->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
-			pNode->UpdateStateButton();
-			pNode->SetFocus();
+
+			if (pNode)
+			{
+				pNode->SetFocus();
+			}
+			
 		}
 	}
 	else if ( pMsg->sType == _T("statebuttonclick"))
@@ -147,23 +141,13 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 	{
 		this->RemoveAt(0);//删掉文字高度测试控件
 
-		BooFileViewNodeUI* pFirestNode = new BooFileViewNodeUI;
-		pFirestNode->ApplyAttributeList(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"0\""));
-		pFirestNode->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
-		pFirestNode->m_bHasChild = false;
-		pFirestNode->UpdateStateButton();
-		this->Add(pFirestNode);
+		CreateNode(0, 0);
+
 	}
 	else if (pMsg->sType == _T("cleanselect"))
 	{
-		for (int i=0; i<m_items.GetSize(); i++)
-		{
-			if (static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected)
-			{
-				static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected = false;
-				static_cast<BooFileViewNodeUI*>(m_items[i])->SetSelect(false);
-			}
-		}
+		CleanSelect();
+
 	}
 	else if (pMsg->sType == _T("movefocus"))
 	{
@@ -195,6 +179,56 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 // 		int a = 0;
 // 	}
 	return true;
+}
+
+LRESULT BooFileViewUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+	if (!IsVisible()) return 0;
+
+	switch (wParam)
+	{
+	case VK_DELETE:
+		{
+			if (GetKeyState(VK_CONTROL) & 0x8000)
+			{
+				//下面是一个小技巧，把焦点所在文字块的节点也设成selected。然后在后面的for循环里面可以一起删掉
+				BooTextFieldUI * pTextField = dynamic_cast<BooTextFieldUI *>(m_pManager->GetFocus());
+				if (NULL != pTextField)
+				{
+					BooFileViewNodeUI *pNode = dynamic_cast<BooFileViewNodeUI *>(pTextField->GetParent());
+					if (NULL != pNode)
+					{
+						pNode->m_bSelected = true;
+					}
+				}
+				//删除所有select的节点
+				for (int i=0; i<m_items.GetSize(); i++)
+				{
+					if (static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected)
+					{
+						if( m_bAutoDestroy ) {
+							delete static_cast<BooFileViewNodeUI*>(m_items[i]);
+						}
+						m_items.Remove(i);
+						i--;//删除后调整迭代计数器
+					}
+				}
+
+				if (m_items.GetSize() == 0)
+				{
+					CreateNode(0,0);
+				}
+
+				NeedUpdate();
+
+				bHandled = true;
+			}
+			break;
+		}
+	default:
+		break;
+	}
+	return 0;
 }
 
 void BooFileViewUI::SetPos(RECT rc)
@@ -277,4 +311,29 @@ void BooFileViewUI::ToggleNodeState( BooFileViewNodeUI* pNode )
 	}
 
 	
+}
+
+void BooFileViewUI::CleanSelect()
+{
+	for (int i=0; i<m_items.GetSize(); i++)
+	{
+		if (static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected)
+		{
+			static_cast<BooFileViewNodeUI*>(m_items[i])->m_bSelected = false;
+			static_cast<BooFileViewNodeUI*>(m_items[i])->SetSelect(false);
+		}
+	}
+}
+
+BooFileViewNodeUI* BooFileViewUI::CreateNode(int nIndent, int nInsertAt)
+{
+	BooFileViewNodeUI* pNewNode = new BooFileViewNodeUI;
+	CStdString strAttr;
+	strAttr.Format(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"%d\""), nIndent);
+	pNewNode->ApplyAttributeList(strAttr);
+	pNewNode->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
+	pNewNode->m_bHasChild = false;
+	pNewNode->UpdateStateButton();
+	this->AddAt(pNewNode, nInsertAt);
+	return pNewNode;
 }
