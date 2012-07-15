@@ -4,11 +4,12 @@
 #include "BooFileViewUI.h"
 
 extern int g_nTextHeight;
+const int g_nIconWidth = 16;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooFileViewNode
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasChild(false), m_bSelected(false), m_bOneLine(false), m_strContent(L"")
+BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasChild(false), m_bSelected(false), m_bOneLine(false), m_nIconIndex(-1), m_strContent(L"")
 {
 	m_indent = new CControlUI;
 	m_indent->ApplyAttributeList(_T("float=\"false\" bordersize=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\""));
@@ -23,9 +24,14 @@ BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasCh
 	this->Add(m_button);
 	m_button->OnNotify += MakeDelegate(this, &BooFileViewNodeUI::OnButtonNotify);
 
-	CControlUI* pSpaceControl = new CControlUI;
-	pSpaceControl->ApplyAttributeList(_T("width=\"3\""));
-	this->Add(pSpaceControl);
+	m_icon = new CControlUI;
+	nPadding = (g_nTextHeight-g_nIconWidth)/2;
+	strAttr.Format(_T("width=\"3\" padding=\"2, %d,2,%d\""), nPadding,nPadding);
+	m_icon->ApplyAttributeList(strAttr);
+	SetIconIndex(m_nIconIndex);
+
+	
+	this->Add(m_icon);
 
 	m_text = new BooTextFieldUI;
 	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF00A2E8\" inset=\"2,2,2,2\""));
@@ -148,5 +154,24 @@ void BooFileViewNodeUI::SetSelect(bool bSelect)
 	else
 	{
 		m_text->SetAttribute(_T("bkcolor"),_T("#FFFFFFFF"));
+	}
+}
+
+void BooFileViewNodeUI::SetIconIndex(int nIconIndex)
+{
+	m_nIconIndex = nIconIndex;
+	CStdString strAttr;
+	if (m_nIconIndex >= 0)
+	{
+		int nLeft = g_nIconWidth*m_nIconIndex;
+		int nRight = g_nIconWidth*(m_nIconIndex+1);
+		strAttr.Format(_T("file='bn_icons.bmp' dest='0,0,16,16' source='%d,0,%d, 16' mask='#FFC0C0C0'"), nLeft, nRight);
+		m_icon->SetBkImage(strAttr);
+		m_icon->SetFixedWidth(g_nIconWidth);
+	}
+	else
+	{
+		m_icon->SetBkImage(L"");
+		m_icon->SetFixedWidth(1); //必须要是1,0的话就要参加布局
 	}
 }

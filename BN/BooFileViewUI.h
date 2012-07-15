@@ -19,6 +19,8 @@ public:
 	BooFileViewNodeUI* CreateNode(int nIndent, int nInsertAt);
 	LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+	void OnPlusKeyDown();
+	void OnMinusKeyDown();
 	void OnDownKeyDown();
 	void OnUpKeyDown();
 	void OnReturnKeyDown( bool& bHandled );

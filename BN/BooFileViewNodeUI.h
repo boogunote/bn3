@@ -5,6 +5,7 @@ class BooFileViewNodeUI : public CHorizontalLayoutUI
 public:
 	BooFileViewNodeUI();
 
+	void SetIconIndex(int nIconIndex);
 	LPCTSTR GetClass() const;
 	LPVOID GetInterface(LPCTSTR pstrName);
 
@@ -20,6 +21,7 @@ public:
 private:
 	CControlUI* m_indent;
 	CButtonUI* m_button;
+	CControlUI* m_icon;
 	CRichEditUI* m_text;
 
 public:
@@ -28,5 +30,6 @@ public:
 	bool m_bHasChild;
 	bool m_bSelected;
 	bool m_bOneLine;
+	int m_nIconIndex;
 	CStdString m_strContent;
 };

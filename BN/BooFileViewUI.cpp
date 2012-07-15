@@ -163,6 +163,8 @@ LRESULT BooFileViewUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 		case VK_RETURN:	OnReturnKeyDown(bHandled); break;
 		case VK_UP: OnUpKeyDown(); break;
 		case VK_DOWN: OnDownKeyDown(); break;
+		case VK_OEM_PLUS: OnPlusKeyDown(); break;
+		case VK_OEM_MINUS: OnMinusKeyDown(); break;
 		default: break;
 		}
 	}
@@ -371,17 +373,23 @@ void BooFileViewUI::OnUpKeyDown()
 	BooFileViewNodeUI* pFocusedNode = GetFocusedNode();
 	if (pFocusedNode)
 	{
-		POINT pt;
-		::GetCaretPos(&pt);
-		if (abs(pt.y - pFocusedNode->GetPos().top) < g_nTextHeight*0.5)
+		if (GetKeyState(VK_CONTROL) & 0x8000)
 		{
-			for (int i = GetItemIndex(pFocusedNode)-1; i>=0; i--)
+		}
+		else
+		{
+			POINT pt;
+			::GetCaretPos(&pt);
+			if (abs(pt.y - pFocusedNode->GetPos().top) < g_nTextHeight*0.5)
 			{
-				if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
+				for (int i = GetItemIndex(pFocusedNode)-1; i>=0; i--)
 				{
-					static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
-					m_nShiftSelectStart = i;
-					break;
+					if (static_cast<BooFileViewNodeUI*>(m_items[i])->IsVisible())
+					{
+						static_cast<BooFileViewNodeUI*>(m_items[i])->SetFocus();
+						m_nShiftSelectStart = i;
+						break;
+					}
 				}
 			}
 		}
@@ -406,6 +414,34 @@ void BooFileViewUI::OnDownKeyDown()
 					break;
 				}
 			}
+		}
+	}
+}
+
+void BooFileViewUI::OnPlusKeyDown()
+{
+	BooFileViewNodeUI* pFocusedNode = GetFocusedNode();
+	if (pFocusedNode)
+	{
+		if (GetKeyState(VK_CONTROL) & 0x8000)
+		{
+			int nNextIconIndex = pFocusedNode->m_nIconIndex+1;
+			if (nNextIconIndex > 6) nNextIconIndex = -1;
+			pFocusedNode->SetIconIndex(nNextIconIndex);
+		}
+	}
+}
+
+void BooFileViewUI::OnMinusKeyDown()
+{
+	BooFileViewNodeUI* pFocusedNode = GetFocusedNode();
+	if (pFocusedNode)
+	{
+		if (GetKeyState(VK_CONTROL) & 0x8000)
+		{
+			int nNextIconIndex = pFocusedNode->m_nIconIndex-1;
+			if (nNextIconIndex <= -1) nNextIconIndex = 6;
+			pFocusedNode->SetIconIndex(nNextIconIndex);
 		}
 	}
 }
