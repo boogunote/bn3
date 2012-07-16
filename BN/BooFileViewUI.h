@@ -16,7 +16,7 @@ public:
 	void SetPos(RECT rc);
 	bool OnNodeNotify(void* param);
 
-	void VisitNode( CMarkupNode &root, BooFileViewNodeUI* pParent, bool bExpandChildren);
+	void VisitNodeV7( CMarkupNode &root, BooFileViewNodeUI* pParent, bool bExpandChildren);
 	BooFileViewNodeUI* CreateNode(int nIndent, int nInsertAt);
 	LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
@@ -26,11 +26,12 @@ public:
 	void OnUpKeyDown();
 	void OnReturnKeyDown( bool& bHandled );
 	void OnDeleteKeyDown( bool& bHandled );
+	void OnSKeyDown();
 	void CleanSelect();
 	void ToggleNodeState( BooFileViewNodeUI* pSenderNode );
 	BooFileViewNodeUI* GetFocusedNode();
 	bool HasChildrenNode(BooFileViewNodeUI* pNode);
-
+	void SerializeNode(int& nIndex, CStdString& strXml);
 public:
 	int m_nShiftSelectStart;
 	CStdString m_strBooFilePath;

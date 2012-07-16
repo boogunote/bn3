@@ -21,7 +21,12 @@ public:
 	void UpdateStateButton();
 	void SetContent(LPCTSTR lpcstrContent);
 	void SetHasChildren(bool bHasChildren);
-
+	void SetBold(bool bBold);
+	void SetTextColor(LPCTSTR lpcstrColor);
+	DWORD GetTextFieldTextColor();
+	void SetBkColor(LPCTSTR lpcstrColor);
+	DWORD GetTextFieldBkColor();
+	void GetContent(CStdString& strContent);
 private:
 	CControlUI* m_indent;
 	CButtonUI* m_button;
@@ -34,6 +39,7 @@ public:
 	bool m_bHasChild;
 	bool m_bSelected;
 	bool m_bOneLine;
+	bool m_bBold;
 	int m_nIconIndex;
 	CStdString m_strContent;
 };

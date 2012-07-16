@@ -111,8 +111,13 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 				BooFileViewNodeUI DummyNode;
 				DummyNode.m_nIndent = -1;
 				DummyNode.m_bExpand = true;
-				VisitNode(root, &DummyNode, true);
-
+				LPCTSTR pstrName = root.GetAttributeName(0);
+				LPCTSTR pstrValue = root.GetAttributeValue(0);
+				int nVersion = _ttoi(pstrValue);
+				if (nVersion<=7)
+				{
+					VisitNodeV7(root, &DummyNode, true);
+				}
 			}
 		}
 
@@ -190,6 +195,7 @@ LRESULT BooFileViewUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 		case VK_DOWN: OnDownKeyDown(); break;
 		case VK_OEM_PLUS: OnPlusKeyDown(); break;
 		case VK_OEM_MINUS: OnMinusKeyDown(); break;
+		case 0x53: OnSKeyDown();break;
 		default: break;
 		}
 	}
@@ -477,7 +483,7 @@ void BooFileViewUI::OnMinusKeyDown()
 	}
 }
 
-void BooFileViewUI::VisitNode( CMarkupNode &root, BooFileViewNodeUI* pParent, bool bExpandChildren /*爷爷节点关闭的话孙子节点也要不显示*/ )
+void BooFileViewUI::VisitNodeV7( CMarkupNode &root, BooFileViewNodeUI* pParent, bool bExpandChildren /*爷爷节点关闭的话孙子节点也要不显示*/ )
 {
 	LPCTSTR pstrClass = NULL;
 	int nAttributes = 0;
@@ -563,16 +569,93 @@ void BooFileViewUI::VisitNode( CMarkupNode &root, BooFileViewNodeUI* pParent, bo
 					pNewNode->m_bExpand = false;
 				}
 			}
+			else if( _tcscmp(pstrName, _T("IsBold")) == 0 ) 
+			{
+				if (_tcscmp(pstrValue, _T("true")) == 0)
+				{
+					pNewNode->SetBold(true);
+				}
+				else
+				{
+					pNewNode->SetBold(false);
+				}
+			}
+			else if( _tcscmp(pstrName, _T("TextColor")) == 0 ) 
+			{
+				pNewNode->SetTextColor(pstrValue);
+			}
+			else if( _tcscmp(pstrName, _T("BkgrdColor")) == 0 ) 
+			{
+				pNewNode->SetBkColor(pstrValue);
+			}
+			
 
 		}
 		if (node.HasChildren())
 		{
 			pNewNode->SetHasChildren(true);
-			VisitNode(node, pNewNode, pNewNode->m_bExpand && bExpandChildren);
+			VisitNodeV7(node, pNewNode, pNewNode->m_bExpand && bExpandChildren);
 		}
 		else
 		{
 			pNewNode->SetHasChildren(false);
 		}
 	}
+}
+
+void BooFileViewUI::OnSKeyDown()
+{
+	if (GetKeyState(VK_CONTROL) & 0x8000)
+	{
+		CStdString strXml = L"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n"\
+							L"<root version=\"8\">\n";
+		
+		for (int nIndex = 0; nIndex<m_items.GetSize(); nIndex++)
+		{
+			CStdString strNodeXml;
+			SerializeNode(nIndex, strNodeXml);
+			strXml += strNodeXml;
+		}
+		strXml += L"</root>";
+		
+		HANDLE hFile = CreateFileW(m_strBooFilePath+L".xml", GENERIC_WRITE,  0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+		if (INVALID_HANDLE_VALUE != hFile)
+		{
+			DWORD dwBytesWritten = WideCharToMultiByte(CP_UTF8, 0, (LPCTSTR)strXml, -1, 0, 0, NULL, NULL);
+			char* utf8buf = new char[dwBytesWritten];
+			int lBytesWritten = WideCharToMultiByte(CP_UTF8, 0, (LPCTSTR)strXml, -1, utf8buf, dwBytesWritten, NULL, NULL);
+			SetFilePointer(hFile, 0, NULL, FILE_END);
+			DWORD dwFileBytesWritten;
+			WriteFile(hFile, utf8buf, lBytesWritten-1, &dwFileBytesWritten, NULL);
+			CloseHandle(hFile);
+		}
+	}
+}
+
+void BooFileViewUI::SerializeNode(int& nIndex, CStdString& strXml)
+{
+	BooFileViewNodeUI* pNode = static_cast<BooFileViewNodeUI*>(m_items[nIndex]);
+	CStdString strContent;
+	pNode->GetContent(strContent);
+	strContent.Replace(L"\n", L"&#xA;");
+	strContent.Replace(L"\r", L"&#xA;");
+	strContent.Replace(L"<", L"&lt;");
+	strContent.Replace(L">", L"&gt;");
+	strContent.Replace(L"&", L"&amp;");
+	strContent.Replace(L"'", L"&apos;");
+	strContent.Replace(L"\"", L"&quot;");
+	strXml += L"<item content=\"";
+	strXml += strContent; //这里没有直接format的原因是这个CStdString的format buffer 只有1024字节。。。
+	CStdString strTemp;
+	strTemp.Format(L"\" icon=\"%d\" expand=\"%d\" oneline=\"%d\" bold=\"%d\" textcolor=\"#%08X\" bkcolor=\"#%08X\">\n",
+		pNode->m_nIconIndex, pNode->m_bExpand, pNode->m_bOneLine, pNode->m_bBold, pNode->GetTextFieldTextColor(), pNode->GetTextFieldBkColor());
+	strXml += strTemp;
+	for (nIndex++; nIndex<m_items.GetSize() && static_cast<BooFileViewNodeUI*>(m_items[nIndex])->m_nIndent < pNode->m_nIndent; nIndex++)
+	{
+		CStdString strNodeXml;
+		SerializeNode(nIndex, strNodeXml);
+		strXml += strNodeXml;
+	}
+	nIndex++;//修正一下
+	strXml += L"</item>\n";
 }

@@ -192,6 +192,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Helper.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -235,6 +239,10 @@
 			</File>
 			<File
 				RelativePath=".\DialogBuilderCallback.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Helper.h"
 				>
 			</File>
 			<File

@@ -2,6 +2,7 @@
 #include "BooTextFieldUI.h"
 #include "BooFileViewNodeUI.h"
 #include "BooFileViewUI.h"
+#include "Helper.h"
 
 extern int g_nTextHeight;
 const int g_nIconWidth = 16;
@@ -9,10 +10,10 @@ const int g_nIconWidth = 16;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //BooFileViewNode
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasChild(false), m_bSelected(false), m_bOneLine(false), m_nIconIndex(-1), m_strContent(L"")
+BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasChild(false), m_bSelected(false), m_bOneLine(false), m_nIconIndex(-1), m_bBold(false),  m_strContent(L"")
 {
 	m_indent = new CControlUI;
-	m_indent->ApplyAttributeList(_T("float=\"false\" bordersize=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\""));
+	m_indent->ApplyAttributeList(_T("float=\"false\" bordersize=\"0\" height=\"0\" bkcolor=\"#00FFFFFF\""));
 	this->Add(m_indent);
 
 	m_button = new CButtonUI;
@@ -34,7 +35,7 @@ BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasCh
 	this->Add(m_icon);
 
 	m_text = new BooTextFieldUI;
-	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF00A2E8\" inset=\"2,2,2,2\""));
+	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF00A2E8\" inset=\"2,2,2,2\" padding=\"0,1,0,1\""));
 	this->Add(m_text);
 	m_text->OnNotify += MakeDelegate(this, &BooFileViewNodeUI::OnTextFeildNotify);
 }
@@ -136,11 +137,11 @@ void BooFileViewNodeUI::SetSelect(bool bSelect)
 	m_bSelected = bSelect;
 	if (m_bSelected)
 	{
-		m_text->SetAttribute(_T("bkcolor"),_T("#FF99D9EA"));
+		SetAttribute(_T("bkcolor"),_T("#FF99D9EA"));
 	}
 	else
 	{
-		m_text->SetAttribute(_T("bkcolor"),_T("#FFFFFFFF"));
+		SetAttribute(_T("bkcolor"),_T("#FFFFFFFF"));
 	}
 }
 
@@ -176,6 +177,18 @@ void BooFileViewNodeUI::SetContent(LPCTSTR lpcstrContent)
 	}
 }
 
+void BooFileViewNodeUI::GetContent(CStdString& strContent)
+{
+	if (m_bOneLine)
+	{
+		strContent = m_strContent;
+	}
+	else
+	{
+		strContent = m_text->GetText();
+	}
+}
+
 void BooFileViewNodeUI::SetOneLine( bool bOneLine, bool bIsInit)
 {
 	m_bOneLine = bOneLine;
@@ -205,4 +218,43 @@ void BooFileViewNodeUI::SetHasChildren( bool bHasChildren )
 {
 	m_bHasChild = bHasChildren;
 	UpdateStateButton();
+}
+
+void BooFileViewNodeUI::SetBold( bool bBold )
+{
+	m_bBold = bBold;
+	if (m_bBold)
+	{
+		m_text->SetFont(2);
+	}
+	else
+	{
+		m_text->SetFont(3);
+	}
+}
+
+void BooFileViewNodeUI::SetTextColor( LPCTSTR lpcstrColor )
+{
+	CStdString strColor = lpcstrColor;
+	strColor = strColor.Mid(0,6);
+	strColor = CStdString(_T("#ff")) + strColor;
+	m_text->SetAttribute(_T("textcolor"), strColor);
+}
+
+void BooFileViewNodeUI::SetBkColor( LPCTSTR lpcstrColor )
+{
+	CStdString strColor = lpcstrColor;
+	strColor = strColor.Mid(0,6);
+	strColor = CStdString(_T("#ff")) + strColor;
+	m_text->SetAttribute(_T("bkcolor"), strColor);
+}
+
+DWORD BooFileViewNodeUI::GetTextFieldTextColor()
+{
+	return m_text->GetTextColor();
+}
+
+DWORD BooFileViewNodeUI::GetTextFieldBkColor()
+{
+	return m_text->GetBkColor();
 }
