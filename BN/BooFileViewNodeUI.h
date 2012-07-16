@@ -11,12 +11,16 @@ public:
 
 	void SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue);
 	bool OnButtonNotify(void* param);
+
+	void SetOneLine(bool bOneLine, bool bIsInit = false);
 	bool OnTextFeildNotify(void* param);
 
 	void SetSelect(bool bSelect);
 	void DoInit();
 	void SetFocus();
 	void UpdateStateButton();
+	void SetContent(LPCTSTR lpcstrContent);
+	void SetHasChildren(bool bHasChildren);
 
 private:
 	CControlUI* m_indent;

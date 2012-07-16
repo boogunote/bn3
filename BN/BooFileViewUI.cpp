@@ -108,21 +108,11 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 			CMarkupNode root = m_xml.GetRoot();
 			if (root.IsValid())
 			{
-				LPCTSTR pstrClass = NULL;
-				int nAttributes = 0;
-				LPCTSTR pstrName = NULL;
-				LPCTSTR pstrValue = NULL;
-				LPTSTR pstr = NULL;
-				for( CMarkupNode node = root.GetChild() ; node.IsValid(); node = node.GetSibling() )
-				{
-					pstrClass = node.GetName();
-					nAttributes = node.GetAttributeCount();
-					for( int i = 0; i < nAttributes; i++ )
-					{
-						pstrName = node.GetAttributeName(i);
-						pstrValue = node.GetAttributeValue(i);
-					}
-				}
+				BooFileViewNodeUI DummyNode;
+				DummyNode.m_nIndent = -1;
+				DummyNode.m_bExpand = true;
+				VisitNode(root, &DummyNode, true);
+
 			}
 		}
 
@@ -306,10 +296,17 @@ BooFileViewNodeUI* BooFileViewUI::CreateNode(int nIndent, int nInsertAt)
 	strAttr.Format(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"%d\""), nIndent);
 	pNewNode->ApplyAttributeList(strAttr);
 	pNewNode->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
-	pNewNode->m_bHasChild = false;
-	pNewNode->UpdateStateButton();
-	this->AddAt(pNewNode, nInsertAt);
-	m_nShiftSelectStart = nInsertAt;
+	pNewNode->SetHasChildren(false);
+	if (nInsertAt<0)
+	{
+		this->Add(pNewNode);
+	}
+	else
+	{
+		this->AddAt(pNewNode, nInsertAt);
+		m_nShiftSelectStart = nInsertAt;
+	}
+	
 	return pNewNode;
 }
 
@@ -384,8 +381,7 @@ void BooFileViewUI::OnReturnKeyDown( bool& bHandled )
 				else if (GetKeyState(VK_SHIFT) & 0x8000)
 				{
 					BooFileViewNodeUI* pParentNode = static_cast<BooFileViewNodeUI*>(GetItemAt(nIndex));
-					pParentNode->m_bHasChild = true;
-					pParentNode->UpdateStateButton();
+					pParentNode->SetHasChildren(true);
 					if (!pParentNode->m_bExpand)
 					{
 						ToggleNodeState(static_cast<BooFileViewNodeUI*>(pParentNode));
@@ -477,6 +473,106 @@ void BooFileViewUI::OnMinusKeyDown()
 			int nNextIconIndex = pFocusedNode->m_nIconIndex-1;
 			if (nNextIconIndex <= -1) nNextIconIndex = 6;
 			pFocusedNode->SetIconIndex(nNextIconIndex);
+		}
+	}
+}
+
+void BooFileViewUI::VisitNode( CMarkupNode &root, BooFileViewNodeUI* pParent, bool bExpandChildren /*爷爷节点关闭的话孙子节点也要不显示*/ )
+{
+	LPCTSTR pstrClass = NULL;
+	int nAttributes = 0;
+	LPCTSTR pstrName = NULL;
+	LPCTSTR pstrValue = NULL;
+	LPTSTR pstr = NULL;
+	for( CMarkupNode node = root.GetChild() ; node.IsValid(); node = node.GetSibling() )
+	{
+		pstrClass = node.GetName();
+		nAttributes = node.GetAttributeCount();
+		BooFileViewNodeUI* pNewNode = CreateNode(pParent->m_nIndent+1, -1);
+		for( int i = 0; i < nAttributes; i++ )
+		{
+			pstrName = node.GetAttributeName(i);
+			pstrValue = node.GetAttributeValue(i);
+			pNewNode->SetVisible(bExpandChildren);
+
+			if( _tcscmp(pstrName, _T("content")) == 0 )
+			{
+				pNewNode->m_strContent = pstrValue;
+				pNewNode->m_strContent.Replace(_T("&#xA;"), _T("\n"));
+			}
+			else if( _tcscmp(pstrName, _T("block")) == 0 )
+			{
+				if (_tcscmp(pstrValue, _T("narrow")) == 0 || _tcscmp(pstrValue, _T("wide")) == 0)
+				{
+					pNewNode->SetOneLine(false);
+				}
+				else
+				{
+					pNewNode->SetOneLine(true, true);
+				}
+			}
+			else if( _tcscmp(pstrName, _T("icon")) == 0 ) 
+			{
+				int nIconIndex = -1;
+				if ( _tcscmp(pstrValue, _T("none")) == 0 )
+				{
+					nIconIndex = -1;
+				}
+				else if (_tcscmp(pstrValue, _T("none")) == 0)
+				{
+					nIconIndex = 0;
+				}
+				else if (_tcscmp(pstrValue, _T("flag")) == 0)
+				{
+					nIconIndex = 1;
+				}
+				else if (_tcscmp(pstrValue, _T("tick")) == 0)
+				{
+					nIconIndex = 2;
+				}
+				else if (_tcscmp(pstrValue, _T("cross")) == 0)
+				{
+					nIconIndex = 3;
+				}
+				else if (_tcscmp(pstrValue, _T("star")) == 0)
+				{
+					nIconIndex = 4;
+				}
+				else if (_tcscmp(pstrValue, _T("question")) == 0)
+				{
+					nIconIndex = 5;
+				}
+				else if (_tcscmp(pstrValue, _T("warning")) == 0)
+				{
+					nIconIndex = 6;
+				}
+				else if (_tcscmp(pstrValue, _T("idea")) == 0)
+				{
+					nIconIndex = 7;
+				}
+				pNewNode->SetIconIndex(nIconIndex);
+			}
+			else if( _tcscmp(pstrName, _T("branch")) == 0 ) 
+			{
+				if (_tcscmp(pstrValue, _T("open")) == 0)
+				{
+					pNewNode->m_bExpand = true;
+				}
+				else if (_tcscmp(pstrValue, _T("close")) == 0)
+				{
+					pNewNode->m_bExpand = false;
+				}
+			}
+
+		}
+		if (node.HasChildren())
+		{
+			pNewNode->SetHasChildren(true);
+			VisitNode(node, pNewNode, pNewNode->m_bExpand && bExpandChildren);
+		}
+		else
+		{
+			pNewNode->SetHasChildren(false);
 		}
 	}
 }

@@ -71,21 +71,8 @@ bool BooFileViewNodeUI::OnButtonNotify(void* param)
 	else if (pMsg->sType == _T("menu"))
 	{
 		m_text->SetFocus();
-		if (!m_bOneLine)
-		{
-			m_strContent = m_text->GetText();
-			m_text->SetText(m_strContent.Mid(0, 10)+L"...");
-			m_text->SetReadOnly(true);
-			m_text->SetMouseEnabled(false);
-			m_bOneLine = true;
-		}
-		else
-		{
-			m_text->SetText(m_strContent);
-			m_text->SetReadOnly(false);
-			m_text->SetMouseEnabled(true);
-			m_bOneLine = false;
-		}
+		SetOneLine(!m_bOneLine);
+
 	}
 	return true;
 }
@@ -174,4 +161,48 @@ void BooFileViewNodeUI::SetIconIndex(int nIconIndex)
 		m_icon->SetBkImage(L"");
 		m_icon->SetFixedWidth(1); //必须要是1,0的话就要参加布局
 	}
+}
+
+void BooFileViewNodeUI::SetContent(LPCTSTR lpcstrContent)
+{
+	if (m_bOneLine)
+	{
+		m_strContent = lpcstrContent;
+		m_text->SetText(m_strContent.Mid(0, 10)+_T("..."));
+	}
+	else
+	{
+		m_text->SetText(lpcstrContent);
+	}
+}
+
+void BooFileViewNodeUI::SetOneLine( bool bOneLine, bool bIsInit)
+{
+	m_bOneLine = bOneLine;
+	if (m_bOneLine)
+	{
+		//如果是在创建节点的时候使用，则不要进行这个同步
+		if (!bIsInit)
+		{
+			m_strContent = m_text->GetText();
+		}
+		m_text->SetText(m_strContent.Mid(0, 10)+L"...");
+		m_text->SetReadOnly(true);
+		m_text->SetMouseEnabled(false);
+		m_bOneLine = true;
+	}
+	else
+	{
+		m_text->SetText(m_strContent);
+		m_strContent.Empty();
+		m_text->SetReadOnly(false);
+		m_text->SetMouseEnabled(true);
+		m_bOneLine = false;
+	}
+}
+
+void BooFileViewNodeUI::SetHasChildren( bool bHasChildren )
+{
+	m_bHasChild = bHasChildren;
+	UpdateStateButton();
 }

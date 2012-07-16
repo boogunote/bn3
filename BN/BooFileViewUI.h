@@ -16,6 +16,7 @@ public:
 	void SetPos(RECT rc);
 	bool OnNodeNotify(void* param);
 
+	void VisitNode( CMarkupNode &root, BooFileViewNodeUI* pParent, bool bExpandChildren);
 	BooFileViewNodeUI* CreateNode(int nIndent, int nInsertAt);
 	LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
