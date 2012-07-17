@@ -26,7 +26,8 @@ LPVOID BooTextFieldUI::GetInterface(LPCTSTR pstrName)
 void BooTextFieldUI::DoInit()
 {
 	__super::DoInit();
-	this->SetEventMask(ENM_REQUESTRESIZE|ENM_LINK);
+	this->SetEventMask(ENM_REQUESTRESIZE);
+	this->SetAutoURLDetect(true);
 	this->SetText(L".");
 	this->SetText(L"");
 }
@@ -51,11 +52,11 @@ LRESULT BooTextFieldUI::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 	if (WM_KEYDOWN == uMsg)
 	{
-		switch (wParam)
-		{
-		default:
-			;
-		}
+// 		switch (wParam)
+// 		{
+// 		default:
+// 			;
+// 		}
 	}
 	else if (WM_LBUTTONDOWN == uMsg)
 	{
