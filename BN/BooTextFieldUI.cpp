@@ -87,10 +87,10 @@ void BooTextFieldUI::OnTxNotify(DWORD iNotify, void *pv)
 	{
 		REQRESIZE *preqsz = (REQRESIZE *)pv;
 		if (0 != preqsz->rc.bottom &&
-			(m_szRequest.cx != preqsz->rc.right ||	m_szRequest.cy != preqsz->rc.bottom + 4)) //注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
+			(m_szRequest.cx != preqsz->rc.right ||	m_szRequest.cy != preqsz->rc.bottom + 2)) //注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
 		{
 			m_szRequest.cx = preqsz->rc.right;
-			m_szRequest.cy = preqsz->rc.bottom + 4;//注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
+			m_szRequest.cy = preqsz->rc.bottom + 2;//注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
 			WCHAR szHeight[BUF_128B];
 			_itow_s(m_szRequest.cy, szHeight, BUF_128B, 10);
 			this->SetAttribute(L"height", szHeight);

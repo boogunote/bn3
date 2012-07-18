@@ -34,10 +34,10 @@ public:
 		{
 			REQRESIZE *preqsz = (REQRESIZE *)pv;
 			if (0 != preqsz->rc.bottom &&
-				(m_szRequest.cx != preqsz->rc.right ||	m_szRequest.cy != preqsz->rc.bottom + 4)) //注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
+				(m_szRequest.cx != preqsz->rc.right ||	m_szRequest.cy != preqsz->rc.bottom + 2)) //注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
 			{
  				m_szRequest.cx = preqsz->rc.right;
- 				m_szRequest.cy = preqsz->rc.bottom + 4;//注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
+ 				m_szRequest.cy = preqsz->rc.bottom + 2;//注意，这里+4是为了留出上下2个像素的空白，不然上下就会显得太挤
 				g_nTextHeight = m_szRequest.cy;
 				m_pManager->SendNotify(this, _T("initbooview"), 0, 0, true); 
 				//大家肯定觉得很奇怪，为什么要在这个富文本控件的OnTxNofty里面发出initbooview消息。
@@ -303,7 +303,7 @@ BooFileViewNodeUI* BooFileViewUI::CreateNode(int nIndent, int nInsertAt)
 {
 	BooFileViewNodeUI* pNewNode = new BooFileViewNodeUI;
 	CStdString strAttr;
-	strAttr.Format(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,2,2,2\" indent=\"%d\""), nIndent);
+	strAttr.Format(_T("width=\"0\" height=\"0\" textpadding=\"2,0,2,0\" align=\"wrap\" padding=\"2,0,2,2\" indent=\"%d\" bordersize=\"0\""), nIndent);
 	pNewNode->ApplyAttributeList(strAttr);
 	pNewNode->OnNotify += MakeDelegate(this, &BooFileViewUI::OnNodeNotify);
 	pNewNode->SetHasChildren(false);

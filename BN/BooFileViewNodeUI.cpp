@@ -35,7 +35,7 @@ BooFileViewNodeUI::BooFileViewNodeUI() : m_nIndent(0), m_bExpand(true), m_bHasCh
 	this->Add(m_icon);
 
 	m_text = new BooTextFieldUI;
-	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF00A2E8\" inset=\"2,2,2,2\" padding=\"0,1,0,1\""));
+	m_text->ApplyAttributeList(_T("width=\"0\" height=\"0\" bkcolor=\"#FFFFFFFF\" bordercolor=\"#FFEEEEEE\" bordersize=\"1\" focusbordercolor=\"#FF00A2E8\" inset=\"0,0,0,0\" padding=\"0,1,0,1\""));
 	this->Add(m_text);
 	m_text->OnNotify += MakeDelegate(this, &BooFileViewNodeUI::OnTextFeildNotify);
 }
