@@ -233,7 +233,7 @@ void BooFileViewNodeUI::SetBold( bool bBold )
 	}
 }
 
-void BooFileViewNodeUI::SetTextColor( LPCTSTR lpcstrColor )
+void BooFileViewNodeUI::SetTextColorV7( LPCTSTR lpcstrColor )
 {
 	CStdString strColor = lpcstrColor;
 	strColor = strColor.Mid(0,6);
@@ -241,12 +241,22 @@ void BooFileViewNodeUI::SetTextColor( LPCTSTR lpcstrColor )
 	m_text->SetAttribute(_T("textcolor"), strColor);
 }
 
-void BooFileViewNodeUI::SetBkColor( LPCTSTR lpcstrColor )
+void BooFileViewNodeUI::SetBkColorV7( LPCTSTR lpcstrColor )
 {
 	CStdString strColor = lpcstrColor;
 	strColor = strColor.Mid(0,6);
 	strColor = CStdString(_T("#ff")) + strColor;
 	m_text->SetAttribute(_T("bkcolor"), strColor);
+}
+
+void BooFileViewNodeUI::SetTextColor( LPCTSTR lpcstrColor )
+{
+	m_text->SetAttribute(_T("textcolor"), lpcstrColor);
+}
+
+void BooFileViewNodeUI::SetBkColor( LPCTSTR lpcstrColor )
+{
+	m_text->SetAttribute(_T("bkcolor"), lpcstrColor);
 }
 
 DWORD BooFileViewNodeUI::GetTextFieldTextColor()

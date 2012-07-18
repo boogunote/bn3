@@ -118,6 +118,10 @@ bool BooFileViewUI::OnNodeNotify(void* param)
 				{
 					VisitNodeV7(root, &DummyNode, true);
 				}
+				else
+				{
+					VisitNodeV8(root, &DummyNode, true);
+				}
 			}
 		}
 
@@ -582,11 +586,11 @@ void BooFileViewUI::VisitNodeV7( CMarkupNode &root, BooFileViewNodeUI* pParent, 
 			}
 			else if( _tcscmp(pstrName, _T("TextColor")) == 0 ) 
 			{
-				pNewNode->SetTextColor(pstrValue);
+				pNewNode->SetTextColorV7(pstrValue);
 			}
 			else if( _tcscmp(pstrName, _T("BkgrdColor")) == 0 ) 
 			{
-				pNewNode->SetBkColor(pstrValue);
+				pNewNode->SetBkColorV7(pstrValue);
 			}
 			
 
@@ -618,7 +622,7 @@ void BooFileViewUI::OnSKeyDown()
 		}
 		strXml += L"</root>";
 		
-		HANDLE hFile = CreateFileW(m_strBooFilePath+L".xml", GENERIC_WRITE,  0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+		HANDLE hFile = CreateFileW(m_strBooFilePath, GENERIC_WRITE,  0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 		if (INVALID_HANDLE_VALUE != hFile)
 		{
 			DWORD dwBytesWritten = WideCharToMultiByte(CP_UTF8, 0, (LPCTSTR)strXml, -1, 0, 0, NULL, NULL);
@@ -647,15 +651,94 @@ void BooFileViewUI::SerializeNode(int& nIndex, CStdString& strXml)
 	strXml += L"<item content=\"";
 	strXml += strContent; //这里没有直接format的原因是这个CStdString的format buffer 只有1024字节。。。
 	CStdString strTemp;
-	strTemp.Format(L"\" icon=\"%d\" expand=\"%d\" oneline=\"%d\" bold=\"%d\" textcolor=\"#%08X\" bkcolor=\"#%08X\">\n",
+	strTemp.Format(L"\" icon=\"%d\" expand=\"%d\" oneline=\"%d\" bold=\"%d\" textcolor=\"#%08X\" bkcolor=\"#%08X\"",
 		pNode->m_nIconIndex, pNode->m_bExpand, pNode->m_bOneLine, pNode->m_bBold, pNode->GetTextFieldTextColor(), pNode->GetTextFieldBkColor());
 	strXml += strTemp;
-	for (nIndex++; nIndex<m_items.GetSize() && static_cast<BooFileViewNodeUI*>(m_items[nIndex])->m_nIndent < pNode->m_nIndent; nIndex++)
+	//是否有子节点
+	if (nIndex+1<m_items.GetSize() && (static_cast<BooFileViewNodeUI*>(m_items[nIndex+1])->m_nIndent > pNode->m_nIndent))
 	{
-		CStdString strNodeXml;
-		SerializeNode(nIndex, strNodeXml);
-		strXml += strNodeXml;
+		strXml += L">";
+		for (nIndex++; nIndex<m_items.GetSize() && static_cast<BooFileViewNodeUI*>(m_items[nIndex])->m_nIndent > pNode->m_nIndent; nIndex++)
+		{
+			CStdString strNodeXml;
+			SerializeNode(nIndex, strNodeXml);
+			strXml += strNodeXml;
+		}
+		nIndex--;//修正一下
+		strXml += L"</item>";
 	}
-	nIndex++;//修正一下
-	strXml += L"</item>\n";
+	else
+	{
+		strXml += L"/>";
+	}
+	
+	
+}
+
+void BooFileViewUI::VisitNodeV8( CMarkupNode &root, BooFileViewNodeUI* pParent, bool bExpandChildren )
+{
+	LPCTSTR pstrClass = NULL;
+	int nAttributes = 0;
+	LPCTSTR pstrName = NULL;
+	LPCTSTR pstrValue = NULL;
+	LPTSTR pstr = NULL;
+	for( CMarkupNode node = root.GetChild() ; node.IsValid(); node = node.GetSibling() )
+	{
+		pstrClass = node.GetName();
+		nAttributes = node.GetAttributeCount();
+		BooFileViewNodeUI* pNewNode = CreateNode(pParent->m_nIndent+1, -1);
+		for( int i = 0; i < nAttributes; i++ )
+		{
+			pstrName = node.GetAttributeName(i);
+			pstrValue = node.GetAttributeValue(i);
+			pNewNode->SetVisible(bExpandChildren);
+
+			if( _tcscmp(pstrName, _T("content")) == 0 )
+			{
+				pNewNode->m_strContent = pstrValue;
+				pNewNode->m_strContent.Replace(_T("&#xA;"), _T("\n"));
+			}
+			else if( _tcscmp(pstrName, _T("oneline")) == 0 )
+			{
+				int nValue = _ttoi(pstrValue); 
+				bool bValue = nValue==0?false:true;
+				if (!bValue)
+					pNewNode->SetOneLine(bValue);
+				else
+					pNewNode->SetOneLine(bValue, true);//如果是收缩文字块，需要进行一些处理，所以第二个参数要为 true
+			}
+			else if( _tcscmp(pstrName, _T("icon")) == 0 ) 
+			{
+				int nValue = _ttoi(pstrValue);
+				pNewNode->SetIconIndex(nValue);
+			}
+			else if( _tcscmp(pstrName, _T("expand")) == 0 ) 
+			{
+				pNewNode->m_bExpand = _ttoi(pstrValue)==0?false:true;
+			}
+			else if( _tcscmp(pstrName, _T("bold")) == 0 ) 
+			{
+				pNewNode->SetBold(_ttoi(pstrValue)==0?false:true);
+			}
+			else if( _tcscmp(pstrName, _T("textcolor")) == 0 ) 
+			{
+				pNewNode->SetTextColor(pstrValue);
+			}
+			else if( _tcscmp(pstrName, _T("bkcolor")) == 0 ) 
+			{
+				pNewNode->SetBkColor(pstrValue);
+			}
+
+
+		}
+		if (node.HasChildren())
+		{
+			pNewNode->SetHasChildren(true);
+			VisitNodeV8(node, pNewNode, pNewNode->m_bExpand && bExpandChildren);
+		}
+		else
+		{
+			pNewNode->SetHasChildren(false);
+		}
+	}
 }

@@ -22,8 +22,10 @@ public:
 	void SetContent(LPCTSTR lpcstrContent);
 	void SetHasChildren(bool bHasChildren);
 	void SetBold(bool bBold);
-	void SetTextColor(LPCTSTR lpcstrColor);
 	DWORD GetTextFieldTextColor();
+	void SetTextColorV7(LPCTSTR lpcstrColor);
+	void SetBkColorV7(LPCTSTR lpcstrColor);
+	void SetTextColor(LPCTSTR lpcstrColor);
 	void SetBkColor(LPCTSTR lpcstrColor);
 	DWORD GetTextFieldBkColor();
 	void GetContent(CStdString& strContent);
